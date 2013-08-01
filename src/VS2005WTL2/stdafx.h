@@ -32,9 +32,15 @@ extern CAppModule _Module;
 
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
+#include <rover/StrUtils.h>
 #include <rover/PathUtils.h>
 #include <rover/Graphic.h>
 #include <rover/OSUtils.h>
+#include <rover/FactoryManager.h>
+#include <rover/Singleton.h>
+#include <rover/Exception.h>
+#include <rover/Diagnostic.h>
+
 
 
 #if defined _M_IX86

@@ -33,6 +33,7 @@ namespace roverlib
 	std::string trimright(const std::string& str);
 	bool startswith(const std::string& str, const std::string& substr);
 	bool endswith(const std::string& str, const std::string& substr);
+	bool endswith(const std::wstring& str, const std::wstring& substr);
 	bool equalsIgnoreCase(const std::string& str1, const std::string& str2);
 	template<class T> T parseString(const std::string& str);
 	template<class T> T parseHexString(const std::string& str);
@@ -62,8 +63,8 @@ namespace roverlib
 	std::wstring GetSysDateString();
 	CStringW CStrA2CStrW(const CStringA &cstrSrcA);
 	CStringA CStrW2CStrA(const CStringW &cstrSrcW);
-	string wstring_to_string(const wstring& ws);
-	wstring string_to_wstring(const string& s);
+	std::string wstring_to_string(const std::wstring& ws);
+	std::wstring string_to_wstring(const std::string& s);
 }
 
 
@@ -576,7 +577,12 @@ namespace roverlib
 		return str.find(substr) == 0;
 	}
 
-	bool endswith(const std::string& str, const std::string& substr)
+	inline bool endswith(const std::string& str, const std::string& substr)
+	{
+		return str.rfind(substr) == (str.length() - substr.length());
+	}
+
+	inline bool endswith(const std::wstring& str, const std::wstring& substr)
 	{
 		return str.rfind(substr) == (str.length() - substr.length());
 	}
@@ -671,21 +677,21 @@ namespace roverlib
 	}
 
 
-	string wstring_to_string(const wstring& ws)
+	std::string wstring_to_string(const std::wstring& ws)
 	{
-		string curLocale = setlocale(LC_ALL, NULL);   
+		std::string curLocale = setlocale(LC_ALL, NULL);   
 		setlocale(LC_ALL, "chs");
 		const wchar_t*  _Source;
 		size_t         size_target;
 
-		string         result;
+		std::string         result;
 		_Source        = ws.c_str();
 		size_target    = 2 * ws.size() + 1;
 
 		int n = wcstombs(  NULL,_Source, 0  );
 		if (n<=0)
 		{
-			return string("");
+			return std::string("");
 		}
 		result.resize( n);
 
@@ -695,11 +701,11 @@ namespace roverlib
 		return result;
 	}
 
-	wstring string_to_wstring(const string& s)
+	std::wstring string_to_wstring(const std::string& s)
 	{
-		string curLocale = setlocale(LC_ALL, NULL);   
+		std::string curLocale = setlocale(LC_ALL, NULL);   
 		const char     *_Source  ;
-		wstring        result ;
+		std::wstring        result ;
 		int            n ;
 		setlocale(LC_ALL, "chs");
 		_Source       = s.c_str();
@@ -707,7 +713,7 @@ namespace roverlib
 		n  =  mbstowcs(NULL,_Source,0 );
 		if(n<=0)
 		{
-			return wstring(L"");
+			return std::wstring(L"");
 		}
 		result.resize(n);
 		mbstowcs( ( wchar_t *)( result.c_str()) ,_Source, n+1);
@@ -717,6 +723,416 @@ namespace roverlib
 	}
 
 
+
+	namespace utility
+	{
+
+		inline void trim(std::string& _str, bool _left = true, bool _right = true)
+		{
+			if (_right) _str.erase(_str.find_last_not_of(" \t\r") + 1);
+			if (_left) _str.erase(0, _str.find_first_not_of(" \t\r"));
+		}
+
+		// 泻芯薪胁械褉褌懈褉芯胁邪薪懈械 胁 褋褌褉芯泻褍
+		template<typename T>
+		inline std::string toString (T p)
+		{
+			std::ostringstream stream;
+			stream << p;
+			return stream.str();
+		}
+
+		inline const std::string& toString (const std::string& _value)
+		{
+			return _value;
+		}
+
+		template<typename T1,  typename T2>
+		inline std::string toString (T1 p1, T2 p2)
+		{
+			std::ostringstream stream;
+			stream << p1 << p2;
+			return stream.str();
+		}
+
+		template<typename T1,  typename T2,  typename T3>
+		inline std::string toString (T1 p1, T2 p2, T3 p3)
+		{
+			std::ostringstream stream;
+			stream << p1 << p2 << p3;
+			return stream.str();
+		}
+
+		template<typename T1,  typename T2,  typename T3, typename T4>
+		inline std::string toString (T1 p1, T2 p2, T3 p3, T4 p4)
+		{
+			std::ostringstream stream;
+			stream << p1 << p2 << p3 << p4;
+			return stream.str();
+		}
+
+		template<typename T1,  typename T2,  typename T3, typename T4, typename T5>
+		inline std::string toString (T1 p1, T2 p2, T3 p3, T4 p4, T5 p5)
+		{
+			std::ostringstream stream;
+			stream << p1 << p2 << p3 << p4 << p5;
+			return stream.str();
+		}
+
+		template<typename T1,  typename T2,  typename T3, typename T4, typename T5, typename T6>
+		inline std::string toString (T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6)
+		{
+			std::ostringstream stream;
+			stream << p1 << p2 << p3 << p4 << p5 << p6;
+			return stream.str();
+		}
+
+		template<typename T1,  typename T2,  typename T3, typename T4, typename T5, typename T6, typename T7>
+		inline std::string toString (T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7)
+		{
+			std::ostringstream stream;
+			stream << p1 << p2 << p3 << p4 << p5 << p6 << p7;
+			return stream.str();
+		}
+
+		template<typename T1,  typename T2,  typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
+		inline std::string toString (T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8)
+		{
+			std::ostringstream stream;
+			stream << p1 << p2 << p3 << p4 << p5 << p6 << p7 << p8;
+			return stream.str();
+		}
+
+		template<typename T1,  typename T2,  typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
+		inline std::string toString (T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8, T9 p9)
+		{
+			std::ostringstream stream;
+			stream << p1 << p2 << p3 << p4 << p5 << p6 << p7 << p8 << p9;
+			return stream.str();
+		}
+
+		template<>
+		inline std::string toString<bool> (bool _value)
+		{
+			return _value ? "true" : "false";
+		}
+
+
+		// 褍褌懈谢懈褌褘 写谢褟 锌邪褉褋懈薪谐邪
+		template<typename T>
+		inline T parseValue( const std::string& _value )
+		{
+			std::istringstream stream(_value);
+			T result;
+			stream >> result;
+			if (stream.fail())
+				return T();
+			else
+			{
+				int item = stream.get();
+				while (item != -1)
+				{
+					if (item != ' ' && item != '\t')
+						return T();
+					item = stream.get();
+				}
+			}
+			return result;
+		}
+
+		// 芯褌写械谢褜薪邪褟 懈屑锌谢械屑械薪褌邪褑懈褟 锌芯写 bool
+		template<>
+		inline bool parseValue(const std::string& _value)
+		{
+			if (_value == "True" || _value == "true" || _value == "1")
+				return true;
+			return false;
+		}
+
+		// 芯褌写械谢褜薪邪褟 懈屑锌谢械屑械薪褌邪褑懈褟 锌芯写 char
+		template<>
+		inline char parseValue(const std::string& _value)
+		{
+			return (char)parseValue<short>(_value);
+		}
+
+		// 芯褌写械谢褜薪邪褟 懈屑锌谢械屑械薪褌邪褑懈褟 锌芯写 unsigned char
+		template<>
+		inline unsigned char parseValue(const std::string& _value)
+		{
+			return (unsigned char)parseValue<unsigned short>(_value);
+		}
+
+
+		inline short parseShort(const std::string& _value)
+		{
+			return parseValue<short>(_value);
+		}
+
+		inline unsigned short parseUShort(const std::string& _value)
+		{
+			return parseValue<unsigned short>(_value);
+		}
+
+		inline int parseInt(const std::string& _value)
+		{
+			return parseValue<int>(_value);
+		}
+
+		inline unsigned int parseUInt(const std::string& _value)
+		{
+			return parseValue<unsigned int>(_value);
+		}
+
+		inline size_t parseSizeT(const std::string& _value)
+		{
+			return parseValue<size_t>(_value);
+		}
+
+		inline float parseFloat(const std::string& _value)
+		{
+			return parseValue<float>(_value);
+		}
+
+		inline double parseDouble(const std::string& _value)
+		{
+			return parseValue<double>(_value);
+		}
+
+		inline bool parseBool(const std::string& _value)
+		{
+			return parseValue<bool>(_value);
+		}
+
+		inline char parseChar(const std::string& _value)
+		{
+			return parseValue<char>(_value);
+		}
+
+		inline unsigned char parseUChar(const std::string& _value)
+		{
+			return parseValue<unsigned char>(_value);
+		}
+
+		// 写谢褟 锌邪褉褋懈薪谐邪 褋谢芯卸薪褘褏 褌懈锌芯胁, 褋芯褋褌芯褟褖懈褏 懈蟹 锌褉芯褋褌褘褏
+		template<typename T1, typename T2>
+		inline T1 parseValueEx2(const std::string& _value)
+		{
+			T2 p1, p2;
+			std::istringstream stream(_value);
+			stream >> p1 >> p2;
+			if (stream.fail())
+				return T1();
+			else
+			{
+				int item = stream.get();
+				while (item != -1)
+				{
+					if (item != ' ' && item != '\t')
+						return T1();
+					item = stream.get();
+				}
+			}
+			return T1(p1, p2);
+		}
+
+		template<typename T1, typename T2>
+		inline T1 parseValueEx3(const std::string& _value)
+		{
+			T2 p1, p2, p3;
+			std::istringstream stream(_value);
+			stream >> p1 >> p2 >> p3;
+			if (stream.fail())
+				return T1();
+			else
+			{
+				int item = stream.get();
+				while (item != -1)
+				{
+					if (item != ' ' && item != '\t')
+						return T1();
+					item = stream.get();
+				}
+			}
+			return T1(p1, p2, p3);
+		}
+
+		template<typename T1, typename T2>
+		inline T1 parseValueEx4(const std::string& _value)
+		{
+			T2 p1, p2, p3, p4;
+			std::istringstream stream(_value);
+			stream >> p1 >> p2 >> p3 >> p4;
+			if (stream.fail())
+				return T1();
+			else
+			{
+				int item = stream.get();
+				while (item != -1)
+				{
+					if (item != ' ' && item != '\t')
+						return T1();
+					item = stream.get();
+				}
+			}
+			return T1(p1, p2, p3, p4);
+		}
+
+		namespace templates
+		{
+			template<typename Type>
+			inline void split(std::vector<Type>& _ret, const Type& _source, const Type& _delims)
+			{
+				size_t start = _source.find_first_not_of(_delims);
+				while (start != _source.npos)
+				{
+					size_t end = _source.find_first_of(_delims, start);
+					if (end != _source.npos)
+						_ret.push_back(_source.substr(start, end - start));
+					else
+					{
+						_ret.push_back(_source.substr(start));
+						break;
+					}
+					start = _source.find_first_not_of(_delims, end + 1);
+				}
+			}
+		} // namespace templates
+
+		inline std::vector<std::string> split(const std::string& _source, const std::string& _delims = "\t\n ")
+		{
+			std::vector<std::string> result;
+			templates::split<std::string>(result, _source, _delims);
+			return result;
+		}
+
+		template<typename T1, typename T2, typename T3, typename T4>
+		inline bool parseComplex(const std::string& _value, T1& _p1, T2& _p2, T3& _p3, T4& _p4)
+		{
+			std::istringstream stream(_value);
+
+			stream >> _p1 >> _p2 >> _p3 >> _p4;
+
+			if (stream.fail())
+				return false;
+			int item = stream.get();
+			while (item != -1)
+			{
+				if (item != ' ' && item != '\t')
+					return false;
+				item = stream.get();
+			}
+
+			return true;
+		}
+
+		template<typename T1, typename T2, typename T3>
+		inline bool parseComplex(const std::string& _value, T1& _p1, T2& _p2, T3& _p3)
+		{
+			std::istringstream stream(_value);
+
+			stream >> _p1 >> _p2 >> _p3;
+
+			if (stream.fail())
+				return false;
+			int item = stream.get();
+			while (item != -1)
+			{
+				if (item != ' ' && item != '\t')
+					return false;
+				item = stream.get();
+			}
+
+			return true;
+		}
+
+		template<typename T1, typename T2>
+		inline bool parseComplex(const std::string& _value, T1& _p1, T2& _p2)
+		{
+			std::istringstream stream(_value);
+
+			stream >> _p1 >> _p2;
+
+			if (stream.fail())
+				return false;
+			int item = stream.get();
+			while (item != -1)
+			{
+				if (item != ' ' && item != '\t')
+					return false;
+				item = stream.get();
+			}
+
+			return true;
+		}
+
+		template<typename T1>
+		inline bool parseComplex(const std::string& _value, T1& _p1)
+		{
+			std::istringstream stream(_value);
+
+			stream >> _p1;
+
+			if (stream.fail())
+				return false;
+			int item = stream.get();
+			while (item != -1)
+			{
+				if (item != ' ' && item != '\t')
+					return false;
+				item = stream.get();
+			}
+
+			return true;
+		}
+
+		template<>
+		inline bool parseComplex<bool>(const std::string& _value, bool& _p1)
+		{
+			std::string value(_value);
+			trim(value);
+			if ((value == "True") || (value == "true") || (value == "1"))
+			{
+				_p1 = true;
+				return true;
+			}
+			else if ((value == "False") || (value == "false") || (value == "0"))
+			{
+				_p1 = false;
+				return true;
+			}
+
+			return false;
+		}
+
+		inline bool startWith(const std::string& _source, const std::string& _value)
+		{
+			size_t count = _value.size();
+			if (_source.size() < count)
+				return false;
+			for (size_t index = 0; index < count; ++ index)
+			{
+				if (_source[index] != _value[index])
+					return false;
+			}
+			return true;
+		}
+
+		inline bool endWith(const std::string& _source, const std::string& _value)
+		{
+			size_t count = _value.size();
+			if (_source.size() < count)
+				return false;
+			size_t offset = _source.size() - count;
+			for (size_t index = 0; index < count; ++ index)
+			{
+				if (_source[index + offset] != _value[index])
+					return false;
+			}
+			return true;
+		}
+
+	} // namespace utility
 
 }
 

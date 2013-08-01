@@ -85,6 +85,36 @@ public:
 	}
 	LRESULT OnButton1(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 	{
+		system("cls");
+
+		string str1 = "abcdefg";
+		string str2 = "defg";
+
+		if (endswith(str1, str2))
+			std::cout << "endswith success." << std::endl;
+
+
+		VectorFileInfo filelist;		
+		getSystemFileList(filelist, GetAppPath(), L"*.*");
+		VectorFileInfo::const_iterator iter;
+		for (iter = filelist.begin(); iter != filelist.end(); ++iter)
+		{
+			std::wcout << (*iter).folder << L"-----" << (*iter).name << std::endl;
+		}
+
+
+		std::vector<wstring> filelist2;
+		scanFolder(filelist2, GetAppPath(), true, L"*.*", true);
+		std::vector<wstring>::const_iterator iter2;
+		for (iter2 = filelist2.begin(); iter2 != filelist2.end(); ++iter2)
+		{
+
+			std::wcout << (*iter2) << std::endl;
+		}
+		
+		//ROVER_ASSERT(str1 == str2, "×Ö·û´®²»ÏàµÈ");
+
+
 		return 0;
 	}
 

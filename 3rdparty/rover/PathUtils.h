@@ -9,8 +9,19 @@
 
 namespace roverlib
 {
+	struct FileInfo
+	{
+		FileInfo(const std::wstring& _name, bool _folder) : name(_name), folder(_folder) { }
+		std::wstring name;
+		bool folder;
+	};
+
+	typedef std::vector<FileInfo> VectorFileInfo;
+	typedef std::vector<std::wstring> VectorWString;
+
 	std::wstring GetAppFileName();
 	std::wstring GetAppPath();
+	bool isAbsolutePath(const wchar_t* path);
 	std::wstring GetFilePath(const std::wstring& filename);
 	void dividePath(const std::wstring& path, std::wstring& filename, std::wstring& ext);
 	std::wstring GetFilename(const std::wstring& path);
@@ -32,7 +43,10 @@ namespace roverlib
 	DWORD MyGetFileSize(LPCTSTR lpPath);
 	bool DeleteDirectory(const std::wstring& path);
 	std::wstring GetCurrentDirectory();
-	
+	bool isReservedDir (const wchar_t* _fn);
+	bool isParentDir (const wchar_t* _fn);
+	std::wstring concatenatePath(const std::wstring& _base, const std::wstring& _name);
+	void scanFolder(VectorWString& _result, const std::wstring& _folder, bool _recursive, const std::wstring& _mask, bool _fullpath);
 	
 }
 
@@ -46,8 +60,8 @@ namespace roverlib
 
 	inline std::wstring GetAppFileName()
 	{		
-		wchar_t filename[MAX_PATH] = {0};
-		GetModuleFileNameW(NULL, filename, MAX_PATH);
+		wchar_t filename[MAX_PATH + 10] = {0};
+		GetModuleFileNameW((HMODULE)&__ImageBase, filename, MAX_PATH);		
 		return std::wstring(filename);
 	}
 
@@ -61,7 +75,15 @@ namespace roverlib
 			s.append(L"\\");
 		
 		return s;
-	};
+	}
+
+	inline bool isAbsolutePath(const wchar_t* path)
+	{
+		if (IsCharAlphaW(path[0]) && path[1] == ':')
+			return true;
+
+		return path[0] == '/' || path[0] == '\\';
+	}
 
 	inline std::wstring GetFilePath(const std::wstring& filename)
 	{		
@@ -506,6 +528,107 @@ namespace roverlib
 		wchar_t buffer[MAX_PATH];
 		::GetCurrentDirectoryW(MAX_PATH, buffer);
 		return std::wstring(buffer);
+	}
+
+
+
+	inline bool isReservedDir (const wchar_t* _fn)
+	{
+		// if "."
+		return (_fn [0] == '.' && _fn [1] == 0);
+	}
+
+	inline bool isParentDir (const wchar_t* _fn)
+	{
+		// if ".."
+		return (_fn [0] == '.' && _fn [1] == '.' && _fn [2] == 0);
+	}
+
+	inline std::wstring concatenatePath(const std::wstring& _base, const std::wstring& _name)
+	{
+		if (_base.empty() || isAbsolutePath(_name.c_str()))
+		{
+			return _name;
+		}
+		else
+		{
+			if (endswith(_base, L"\\") || endswith(_base, L"/"))
+				return _base + _name;
+
+#ifdef _WIN32
+			return _base + L'\\' + _name;
+#else
+			return _base + L'/' + _name;
+#endif
+		}
+	}
+
+
+	inline void getSystemFileList(VectorFileInfo& _result, const std::wstring& _folder, const std::wstring& _mask)
+	{
+		//FIXME add optional parameter?
+		bool ms_IgnoreHidden = true;
+
+		long lHandle, res;
+		struct _wfinddata_t tagData;
+
+		// pattern can contain a directory name, separate it from mask
+		size_t pos = _mask.find_last_of(L"/\\");
+		std::wstring directory;
+		if (pos != _mask.npos)
+			directory = _mask.substr (0, pos);
+
+		std::wstring full_mask = concatenatePath(_folder, _mask);
+
+		lHandle = _wfindfirst(full_mask.c_str(), &tagData);
+		res = 0;
+		while (lHandle != -1 && res != -1)
+		{
+			if (( !ms_IgnoreHidden || (tagData.attrib & _A_HIDDEN) == 0 ) &&
+				!isReservedDir(tagData.name))
+			{
+				_result.push_back(FileInfo(concatenatePath(directory, tagData.name), (tagData.attrib & _A_SUBDIR) != 0));
+			}
+			res = _wfindnext( lHandle, &tagData );
+		}
+		// Close if we found any files
+		if (lHandle != -1)
+			_findclose(lHandle);
+
+	}
+	
+
+	inline void scanFolder(VectorWString& _result, const std::wstring& _folder, bool _recursive, const std::wstring& _mask, bool _fullpath)
+	{
+		std::wstring folder = _folder;
+		if (!folder.empty() && *folder.rbegin() != '/' && *folder.rbegin() != '\\') folder += L"/";
+
+		VectorFileInfo result;
+		getSystemFileList(result, folder, _mask);
+
+		for (VectorFileInfo::const_iterator item = result.begin(); item != result.end(); ++item)
+		{
+			if (item->folder) continue;
+
+			if (_fullpath)
+				_result.push_back(folder + item->name);
+			else
+				_result.push_back(item->name);
+		}
+
+		if (_recursive)
+		{
+			getSystemFileList(result, folder, L"*");
+
+			for (VectorFileInfo::const_iterator item = result.begin(); item != result.end(); ++item)
+			{
+				if (!item->folder
+					|| item->name == L".."
+					|| item->name == L".") continue;
+				scanFolder(_result, folder + item->name, _recursive, _mask, _fullpath);
+			}
+
+		}
 	}
 
 
