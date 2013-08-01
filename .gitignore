@@ -51,7 +51,6 @@ Release/
 *.exp
 *.exe
 *.manifest
-*.rc
 ipch/
 obj/
 *.resfiles
