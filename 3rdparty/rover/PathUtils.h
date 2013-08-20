@@ -5,10 +5,18 @@
 #include <vector>
 #include <atlfile.h>
 #include <io.h>
-
+#include <ShlObj.h>
+#include "Diagnostic.h"
 
 namespace roverlib
 {
+
+	const wchar_t PathDelim  = L'\\';
+	const wchar_t DirDelimiter = L'\\';
+	const wchar_t DriveDelim = L':';
+	const wchar_t PathSep    = L';';
+
+
 	struct FileInfo
 	{
 		FileInfo(const std::wstring& _name, bool _folder) : name(_name), folder(_folder) { }
@@ -18,6 +26,13 @@ namespace roverlib
 
 	typedef std::vector<FileInfo> VectorFileInfo;
 	typedef std::vector<std::wstring> VectorWString;
+
+	bool IsPathDelimiter(const std::wstring& S, int Index);
+	std::wstring IncludeTrailingBackslash(const std::wstring& S);
+	std::wstring IncludeTrailingPathDelimiter(const std::wstring& S);
+	std::wstring ExcludeTrailingBackslash(const std::wstring& S);
+	std::wstring ExcludeTrailingPathDelimiter(const std::wstring& S);
+	std::wstring ExtractFilePath(const std::wstring& FileName);
 
 	std::wstring GetAppFileName();
 	std::wstring GetAppPath();
@@ -47,6 +62,13 @@ namespace roverlib
 	bool isParentDir (const wchar_t* _fn);
 	std::wstring concatenatePath(const std::wstring& _base, const std::wstring& _name);
 	void scanFolder(VectorWString& _result, const std::wstring& _folder, bool _recursive, const std::wstring& _mask, bool _fullpath);
+
+	typedef BOOL (WINAPI *EnumerateFunc) (const wchar_t* lpFileOrPath, void* pUserData);
+	void doFileEnumeration(const wchar_t* lpPath, BOOL bRecursion, BOOL bEnumFiles, EnumerateFunc pFunc, void* pUserData);
+
+	std::wstring GetShellFolderPath(int CSIDL);
+	bool FileExists(const std::wstring& FileName);
+	bool DirectoryExists(const std::wstring& Directory);
 	
 }
 
@@ -56,6 +78,265 @@ namespace roverlib
 	// Add backslash to string
 	#define ADDBACKSLASH(s) if(s.Right(1)!=_T('\\')) s+=_T('\\');
 	#define REMOVEBACKSLASH(s) if(s.Right(1)==_T('\\')) s=s.Left(s.GetLength()-1);
+
+
+	inline bool IsPathDelimiter(const std::wstring& S, int Index)
+	{
+		return (Index > 0) && (Index <= S.length()) && (S[Index] == PathDelim);
+	}
+
+
+	inline std::wstring IncludeTrailingBackslash(const std::wstring& S)
+	{
+		return IncludeTrailingPathDelimiter(S);
+	}
+
+	inline std::wstring IncludeTrailingPathDelimiter(const std::wstring& S)
+	{
+		std::wstring Result = S;
+		if (!IsPathDelimiter(Result, Result.length()))
+			Result = Result + PathDelim;
+		return Result;
+	}
+
+	inline std::wstring PathAddSeparator(const std::wstring& Path)
+	{
+		std::wstring Result = Path;
+		if ((Path == L"") || (Path[Path.length()] != DirDelimiter))
+			Result = Path + DirDelimiter;
+	}
+
+	inline std::wstring PathBuildRoot(int Drive)
+	{
+		wchar_t Result[MAX_PATH + 10] = {0};
+		::PathBuildRootW(Result, Drive);
+		return std::wstring(Result);
+	}
+	
+
+	inline std::wstring ExcludeTrailingBackslash(const std::wstring& S)
+	{
+		return ExcludeTrailingPathDelimiter(S);
+	}	
+
+	inline std::wstring ExcludeTrailingPathDelimiter(const std::wstring& S)
+	{
+		std::wstring Result = S;
+		if (IsPathDelimiter(Result, Result.length()))		
+			Result.erase(Result.length() - 1);			
+		return Result;
+	}
+
+
+	inline std::wstring ExtractFilePath(const std::wstring& FileName)
+	{
+		std::wstring Result = FileName;
+		return Result.erase(Result.find_last_of(PathDelim) + 1);
+	}
+
+
+	inline std::wstring ExtractFileName(const std::wstring& FileName)
+	{
+		std::wstring Result = FileName;
+		return Result.erase(0, Result.find_last_of(PathDelim) + 1);
+	}
+
+	inline std::wstring ExtractFileExt(const std::wstring& FileName)
+	{
+		std::wstring Result = FileName;
+		return Result.erase(0, Result.find_last_of(L'.') + 1);
+	}
+
+	inline std::wstring ExpandFileName(const std::wstring& FileName)
+	{
+		wchar_t* FName;
+		wchar_t Buffer[MAX_PATH] = {0};
+		::GetFullPathNameW(FileName.c_str(), MAX_PATH,	Buffer, &FName);
+		return std::wstring(Buffer);
+	}
+
+
+	inline std::wstring ChangeFileExt(const std::wstring& FileName, const std::wstring& Extension)
+	{
+		std::wstring Result = FileName;
+		return Result.erase(Result.find_last_of(L'.') + 1) + Extension;
+	}
+
+	inline std::wstring ChangeFilePath(const std::wstring& FileName, const std::wstring& Path)
+	{
+		std::wstring Result = Path;
+		return IncludeTrailingPathDelimiter(Result) + ExtractFileName(FileName);
+	}
+
+
+	inline std::wstring ExtractShortPathName(const std::wstring& FileName)
+	{
+		wchar_t Buffer[MAX_PATH + 1] = {0};
+		GetShortPathNameW(FileName.c_str(), Buffer, MAX_PATH);
+		return std::wstring(Buffer);
+
+	}
+
+
+
+	inline bool CreateDir(const std::wstring& Dir)
+	{
+		return CreateDirectoryW(Dir.c_str(), NULL) == TRUE;
+	}
+
+	inline bool ForceDirectories(std::wstring Dir)
+	{
+		/*
+		bool Result;
+		if (Dir.length() == 0)
+			return false;
+		Dir = ExcludeTrailingPathDelimiter(Dir);
+		if ((Dir.length() < 3) || DirectoryExists(Dir) || (ExtractFilePath(Dir) == Dir)) 
+			exit(0); // avoid 'xyz:\' problem.		 
+		return ForceDirectories(ExtractFilePath(Dir)) && CreateDir(Dir);
+		*/
+		return false;
+	}
+
+
+
+	inline bool SetCurrentDir(const std::wstring& Dir)
+	{
+		return ::SetCurrentDirectory(Dir.c_str()) == TRUE;
+	}
+
+	inline bool RemoveDir(const std::wstring& Dir)
+	{
+		return ::RemoveDirectory(Dir.c_str()) == TRUE;
+	}
+
+	inline bool DeleteFile(const std::wstring& FileName)
+	{
+		return ::DeleteFile(FileName.c_str()) == TRUE;
+	}
+
+	inline bool RenameFile(const std::wstring& OldName, const std::wstring& NewName)
+	{
+		return ::MoveFile(OldName.c_str(), NewName.c_str()) == TRUE;
+	}
+
+	inline bool DeleteFileByShell(const std::wstring& FileName)
+	{
+		SHFILEOPSTRUCTW Fileop = {0};
+		Fileop.hwnd = NULL;
+		Fileop.wFunc = FO_DELETE;
+		Fileop.pFrom = FileName.c_str();
+		Fileop.fFlags = FOF_ALLOWUNDO;
+		return ::SHFileOperationW(&Fileop) > 0;
+	}
+	
+
+	inline std::wstring CreateClassID()
+	{
+		GUID ClassID = {0};
+		wchar_t* P;
+		std::wstring Result;
+
+		::CoCreateGuid(&ClassID);
+		::StringFromCLSID(ClassID, &P);
+		Result = std::wstring(P);
+		::CoTaskMemFree(P);
+
+		return Result;
+	}
+	
+
+	inline std::wstring GUIDToString(const GUID& ClassID)
+	{
+		wchar_t* P;
+		std::wstring Result;
+		if (SUCCEEDED(StringFromCLSID(ClassID, &P)))
+		{
+			Result = std::wstring(P);
+			CoTaskMemFree(P);
+		}
+		return Result;
+	}	
+
+	inline GUID StringToGUID(const std::wstring& S)
+	{
+		GUID Result;
+		SUCCEEDED(CLSIDFromString((LPOLESTR)S.c_str(), &Result));
+		return Result;
+	}
+	
+
+	inline GUID ProgIDToClassID(const std::wstring& ProgID)
+	{
+		GUID Result;
+		SUCCEEDED(CLSIDFromString((LPOLESTR)ProgID.c_str(), &Result));
+		return Result;
+	}
+	
+
+	inline std::wstring ClassIDToProgID(const GUID& ClassID)
+	{
+		wchar_t* P;
+		std::wstring Result;
+		if (SUCCEEDED(ProgIDFromCLSID(ClassID, &P)))
+		{
+			Result = std::wstring(P);
+			CoTaskMemFree(P);
+		}
+		return Result;
+	}
+
+
+	inline int FileOpen(const std::wstring& FileName, DWORD Mode)
+	{
+		DWORD AccessMode[3] = {GENERIC_READ, GENERIC_WRITE, GENERIC_READ | GENERIC_WRITE};
+		DWORD ShareMode[5] = {0, 0, FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE};
+
+		int Result = -1;
+		if (((Mode & 3) <= OF_READWRITE) && ((Mode & 0xF0) <= OF_SHARE_DENY_NONE))
+			Result = (int)::CreateFileW(FileName.c_str(), AccessMode[Mode & 3], ShareMode[(Mode & 0xF0) >> 4], NULL, OPEN_EXISTING,
+				FILE_ATTRIBUTE_NORMAL, 0);
+
+		return Result;			
+	}
+
+	
+
+	inline int FileCreate(const std::wstring& FileName)
+	{
+		return (int)CreateFileW(FileName.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	}
+
+	
+	inline int FileRead(int Handle, BYTE* Buffer, DWORD Count)
+	{
+		DWORD Result;
+		if (!ReadFile((HANDLE)Handle, Buffer, Count, &Result, NULL))
+			Result = -1;
+		return Result;
+	}
+
+	inline int FileWrite(int Handle, const BYTE* Buffer, DWORD Count)
+	{
+		DWORD Result;
+		if (!WriteFile((HANDLE)Handle, Buffer, Count, &Result, NULL))
+			Result = -1;
+		return Result;
+	}
+
+
+
+	inline int FileSeek(int Handle, int Offset, int Origin)
+	{
+		return ::SetFilePointer((HANDLE)Handle, Offset, NULL, Origin);
+	}	
+
+	inline void FileClose(int Handle)
+	{
+		::CloseHandle((HANDLE)Handle);
+	}
+
+	
 
 
 	inline std::wstring GetAppFileName()
@@ -132,22 +413,6 @@ namespace roverlib
 		return std::wstring(ext);		
 	}
 
-
-	inline CString ExtracFilePath(const CString& Filename)
-	{	
-		CString retval;
-
-		// Todo::
-		return retval;
-	}
-
-	inline CString ExtracFileDir(const CString& Filename)
-	{	
-		CString retval;
-
-		// Todo::
-		return retval;
-	}
 
 	inline std::wstring ExtracFileName(const std::wstring& Filename)
 	{			
@@ -251,7 +516,6 @@ namespace roverlib
 	bool IsFileExist(const std::wstring& filename)
 	{
 		bool bRet = false;
-		
 
 		WIN32_FIND_DATA fd = {0};
 		HANDLE hFile = FindFirstFile(filename.c_str(), &fd);
@@ -263,6 +527,50 @@ namespace roverlib
 		}
 		return bRet;
 	}
+
+	inline bool ExistsLockedOrShared(const std::wstring& FileName)
+	{
+		WIN32_FIND_DATAW FindData = {0};
+		HANDLE LHandle;
+		LHandle = ::FindFirstFileW(FileName.c_str(), &FindData);
+		if (LHandle != INVALID_HANDLE_VALUE) 
+		{	
+			::FindClose(LHandle);
+			return ((FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0);
+		}
+		else
+			return false;
+	}
+
+	
+
+	inline bool FileExists(const std::wstring& FileName)
+	{
+		DWORD Code;
+		DWORD LastError;
+		Code = ::GetFileAttributesW(FileName.c_str());
+		if (Code != -1)
+		{
+			return ((FILE_ATTRIBUTE_DIRECTORY & Code) == 0);
+		}
+		else
+		{
+			LastError = ::GetLastError();
+			return ((LastError != ERROR_FILE_NOT_FOUND) &&
+				(LastError != ERROR_PATH_NOT_FOUND) &&
+				(LastError != ERROR_INVALID_NAME) && ExistsLockedOrShared(FileName));
+		}
+
+	}
+
+	inline bool DirectoryExists(const std::wstring& Directory)
+	{
+		DWORD Code;
+		Code = ::GetFileAttributesW(Directory.c_str());
+		return ((Code != INVALID_FILE_ATTRIBUTES) && ((FILE_ATTRIBUTE_DIRECTORY & Code) != 0));
+	}
+
+
 
 	template<size_t nSize>
 	void ModifyPathSpec( TCHAR (&szDst)[nSize], BOOL  bAddSpec )
@@ -631,6 +939,110 @@ namespace roverlib
 		}
 	}
 
+	
+	inline void doFileEnumeration(const wchar_t* lpPath, BOOL bRecursion, BOOL bEnumFiles, EnumerateFunc pFunc, void* pUserData)
+	{
+
+		static BOOL s_bUserBreak = FALSE;
+		try
+		{
+			//-------------------------------------------------------------------------
+			if(s_bUserBreak) 
+				return;
+
+			size_t len = wcslen(lpPath);
+			if (lpPath==NULL || len<=0) 
+				return;
+
+			
+
+			std::wstring path;
+			path.append(lpPath);
+			if (*(path.end()-1) != L'\\')
+				path.append(L"\\*");
+
+
+			WIN32_FIND_DATA fd;
+			HANDLE hFindFile = FindFirstFileW(path.c_str(), &fd);
+			if(hFindFile == INVALID_HANDLE_VALUE)
+			{
+				::FindClose(hFindFile); 
+				return;
+			}
+
+		
+			BOOL bUserReture=TRUE; 
+			BOOL bIsDirectory;
+			std::wstring tempPath;
+
+			BOOL bFinish = FALSE;
+			while(!bFinish)
+			{
+				tempPath.clear();
+				tempPath.append(lpPath);
+				if (*(tempPath.end()-1) != L'\\')
+					tempPath.append(L"\\");
+				tempPath.append(fd.cFileName);				
+
+				bIsDirectory = ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0);
+
+				//如果是.或..
+				if( bIsDirectory
+					&& (wcscmp(fd.cFileName, L".") == 0 || wcscmp(fd.cFileName, L"..") == 0)) 
+				{		
+					
+					bFinish = (FindNextFileW(hFindFile, &fd) == FALSE);
+					continue;
+				}
+
+				if(pFunc && bEnumFiles!=bIsDirectory)
+				{
+					bUserReture = pFunc(tempPath.c_str(), pUserData);
+					if(bUserReture==FALSE)
+					{
+						s_bUserBreak = TRUE; 
+						::FindClose(hFindFile); 
+						return;
+					}
+				}				
+
+				if(bIsDirectory && bRecursion) //是子目录
+				{
+					doFileEnumeration(tempPath.c_str(), bRecursion, bEnumFiles, pFunc, pUserData);
+				}
+
+				bFinish = (FindNextFileW(hFindFile, &fd) == FALSE);
+			}
+
+			::FindClose(hFindFile);
+
+			//-------------------------------------------------------------------------
+		}
+		catch(...)
+		{ 
+			ATLASSERT(0); 
+			return; 
+		}
+	}
+
+
+	inline std::wstring GetShellFolderPath(int CSIDL)
+	{
+		std::wstring retval;
+		LPITEMIDLIST pID;
+		wchar_t buffer[MAX_PATH + 10] = {0};
+		if (SUCCEEDED(::SHGetSpecialFolderLocation(NULL, CSIDL, &pID)))
+		{
+			if (::SHGetPathFromIDListW(pID, buffer))
+				retval = buffer;
+			GlobalFree(pID);
+		}
+		return retval;			
+	}
+
+
+	
+	
 
 	
 

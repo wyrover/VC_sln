@@ -3,7 +3,7 @@
 
 #include <sstream>
 #include <crtdbg.h>
-#include "Exception.h"
+#include <rover/Exception.h>
 
 #define ROVER_BASE_EXCEPT(desc, src)	 throw roverlib::Exception(desc, src, __FILE__, __LINE__);
 

@@ -11,6 +11,7 @@
 #include <TlHelp32.h>
 #include <vector>
 #include <tracetool/tracetool.h>
+#include "Diagnostic.h"
 
 using namespace std;
 
@@ -29,6 +30,12 @@ namespace roverlib
 	void SetConsoleColor(unsigned short ForeColor=4,unsigned short BackGroundColor=0);
 	void PrintConsoleColor();
 	std::vector<std::string> get_local_ipaddress();
+
+	// 用来注册COM组件
+	bool RegSvr32(const std::wstring& filename, bool bUnReg = false);
+	void CreateRegKey(const std::wstring& Key, const std::wstring& ValueName, const std::wstring& Value, HKEY RootKey = HKEY_CLASSES_ROOT);
+	void DeleteRegKey(const std::wstring& Key, HKEY RootKey = HKEY_CLASSES_ROOT);
+	std::wstring GetRegStringValue(const std::wstring& Key, const std::wstring& ValueName, HKEY RootKey = HKEY_CLASSES_ROOT);
 }
 
 namespace roverlib 
@@ -390,6 +397,256 @@ namespace roverlib
 	}
 
 
+	inline bool RegSvr32(const std::wstring& FileName, bool bUnReg)
+	{
+		if (!FileExists(FileName))
+		{
+			return false;
+		}
+
+		bool retval = false;
+		std::string purpose;
+		purpose = bUnReg ? "DllUnregisterServer" : "DllRegisterServer";
+
+		HMODULE hLib = ::LoadLibraryW(FileName.c_str());		
+		void* lProcAddress = NULL;
+		HANDLE lThread;
+		DWORD lSuccess;
+		DWORD ExitCode;
+		DWORD ThreadId;
+		if (hLib)
+		{
+			lProcAddress = GetProcAddress(hLib, purpose.c_str());
+			if (lProcAddress)
+			{
+				lThread = ::CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)lProcAddress, NULL, NULL, &ThreadId);
+				if (lThread)
+				{
+					lSuccess = (::WaitForSingleObject(lThread, 10000) == 0);
+					if (!lSuccess)
+					{
+						::GetExitCodeThread(lThread, &ExitCode);
+						::ExitThread(ExitCode);
+						retval = false;
+					}
+					else				
+						retval = true;
+					::CloseHandle(lThread)	;
+				}
+			}
+			::FreeLibrary(hLib);			
+		}
+		return retval;
+	}	
+
+
+	inline void CreateRegKey(const std::wstring& Key, const std::wstring& ValueName, const std::wstring& Value, HKEY RootKey)
+	{
+		HKEY Handle;
+		LONG Status;
+		DWORD Disposition;
+		Status = ::RegCreateKeyExW(RootKey, Key.c_str(), 0, L"", REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, NULL, &Handle, &Disposition);
+		if (Status == 0)
+		{
+			Status = ::RegSetValueExW(Handle, ValueName.c_str(), 0, REG_SZ, (const BYTE*)Value.c_str(), (Value.length() + 1) * sizeof(wchar_t));
+			::RegCloseKey(Handle);
+		}
+		if (Status != 0)
+			ROVER_EXCEPT("Error creating system registry entry");
+
+	}
+	
+
+	inline void DeleteRegKey(const std::wstring& Key, HKEY RootKey)
+	{
+		::RegDeleteKeyW(RootKey, Key.c_str());
+	}
+	
+
+	inline std::wstring GetRegStringValue(const std::wstring& Key, const std::wstring& ValueName, HKEY RootKey)
+	{
+		HKEY RegKey;
+		DWORD Size;
+		std::wstring Result = L"";
+		if (::RegOpenKeyW(RootKey, Key.c_str(), &RegKey) == ERROR_SUCCESS)
+		{		
+			wchar_t Buffer[256] = {0};
+			Size = 256 * sizeof(wchar_t);
+			if (::RegQueryValueExW(RegKey, ValueName.c_str(), NULL, NULL, PBYTE(Buffer), &Size) == ERROR_SUCCESS)
+			{
+				Result = std::wstring(Buffer);
+			}
+			::RegCloseKey(RegKey);
+		}
+
+		return Result;
+
+	}	
+
+	inline void RegisterAsService(const std::wstring& ClassID, const std::wstring& ServiceName)
+	{
+		CreateRegKey(L"AppID\\" + ClassID, L"LocalService", ServiceName);
+		CreateRegKey(L"CLSID\\" + ClassID, L"AppID", ClassID);
+	}
+
+	inline void AddToRecentDocs(const std::wstring& FileName)
+	{
+		::SHAddToRecentDocs(SHARD_PATH, FileName.c_str());
+	}
+
+
+	inline bool LoadModule(HMODULE& Module, const std::wstring& FileName)
+	{
+		bool Result;
+		if (Module == NULL)
+		{
+			Module = LoadLibraryW(FileName.c_str());
+			Result = (Module != NULL);
+		}
+		return Result;
+	}
+
+
+	inline bool LoadModuleEx(HMODULE& Module, const std::wstring& FileName, DWORD Flags)
+	{
+		bool Result;
+		if (Module == NULL)
+		{
+			Module = LoadLibraryExW(FileName.c_str(), 0, Flags);
+			Result = (Module != NULL);
+		}
+		return Result;
+	}
+
+	inline void UnloadModule(HMODULE& Module)
+	{
+		if (Module != NULL)
+		{
+			::FreeLibrary(Module);
+			Module = NULL;
+		}
+	}
+
+
+	inline void* GetModuleSymbol(const HMODULE& Module, const std::string& SymbolName)
+	{
+		void* Result = NULL;
+		if (Module != NULL)
+			Result = GetProcAddress(Module, SymbolName.c_str());
+		return Result;
+	}
+
+	inline void* GetModuleSymbolEx(const HMODULE& Module, const std::string& SymbolName, bool& Accu)
+	{
+		void* Result = NULL;
+		if (Module != NULL)
+		{
+			Result = GetProcAddress(Module, SymbolName.c_str());
+			Accu = Accu & (Result != NULL);
+		}
+		return Result;	
+	}
+
+
+	inline bool ExpandEnvironmentVar(std::wstring& Value)
+	{
+		bool Result;
+		int R;
+		wchar_t Expanded[1];
+		R = ExpandEnvironmentStringsW(Value.c_str(), Expanded, 0);
+		wchar_t* pExpanded = new wchar_t[R];
+		memset(pExpanded, 0, R);
+		Result = (ExpandEnvironmentStringsW(Value.c_str(), pExpanded, R) != 0);
+		if (Result)
+			Value = pExpanded;
+		delete[] pExpanded;
+		return Result;
+	}
+
+	inline bool GetEnvironmentVar(const std::wstring& Name, std::wstring& Value, bool Expand)
+	{
+		bool Result;
+		DWORD R;
+		R = ::GetEnvironmentVariableW(Name.c_str(), NULL, 0);
+		wchar_t* pBuffer = new wchar_t[R + 1];
+		memset(pBuffer, 0, R + 1);
+		R = ::GetEnvironmentVariableW(Name.c_str(), pBuffer, R);
+		Result = (R != 0);
+		if (!Result)
+			Value = L"";
+		else
+		{
+			Value = pBuffer;
+		
+			if (Expand)
+				ExpandEnvironmentVar(Value);
+		}
+
+		return Result;
+	}
+
+
+	inline bool GetEnvironmentVar(const std::wstring& Name, std::wstring& Value)
+	{
+		return GetEnvironmentVar(Name, Value, True);
+		
+	}
+	
+	inline bool SetEnvironmentVar(const std::wstring& Name, const std::wstring& Value)
+	{
+		return (::SetEnvironmentVariableW(Name.c_str(), Value.c_str()) == TRUE);
+	}
+
+
+	typedef struct _SHNOTIFYSTRUCT
+	{
+		LPITEMIDLIST dwItem1;
+		LPITEMIDLIST dwItem2;
+	}SHNOTIFYSTRUCT, *PSHNOTIFYSTRUCT;	
+	
+
+	inline bool SHNotify_Register(HWND hWnd, DWORD& hSHNotify, LPITEMIDLIST& pidlDesktop)
+	{
+		SHChangeNotifyEntry ps;
+		
+
+		if (hSHNotify == 0)
+		{
+			// ::SHGetSpecialFolderLocation(0, CSIDL_DESKTOP, &g_pidlDesktop);
+			::SHGetSpecialFolderLocation(0, CSIDL_DRIVES, &pidlDesktop);			
+			if (pidlDesktop)
+			{
+				ps.pidl = pidlDesktop;
+				ps.fRecursive = TRUE;
+				hSHNotify = ::SHChangeNotifyRegister(hWnd, SHCNF_TYPE | SHCNF_IDLIST, SHCNE_ALLEVENTS | SHCNE_INTERRUPT, 0x401, 1, &ps);
+				return hSHNotify != 0;
+			}
+			else
+			{
+				::CoTaskMemFree(pidlDesktop);
+			}
+
+		}
+
+		return false;
+	}
+
+	inline bool SHNotify_Unregister(DWORD& hSHNotify, LPITEMIDLIST& pidlDesktop)
+	{
+		bool Result = false;
+
+		if (hSHNotify)
+		{
+			if (::SHChangeNotifyDeregister(hSHNotify))
+			{
+				hSHNotify = 0;
+				::CoTaskMemFree(pidlDesktop);
+				Result = true;
+			}
+		}
+
+		return Result;
+	}
 
 }
 

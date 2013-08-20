@@ -40,6 +40,10 @@ extern CAppModule _Module;
 #include <rover/Singleton.h>
 #include <rover/Exception.h>
 #include <rover/Diagnostic.h>
+#include <rover/TextFile.h>
+#include <rover/Stream.h>
+#include <rover/Registry.h>
+#include <rover/DLLImport.h>
 
 
 

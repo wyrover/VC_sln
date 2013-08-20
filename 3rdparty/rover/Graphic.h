@@ -1,11 +1,21 @@
 #ifndef _ROVERLIB_GRAPHIC_H_
 #define _ROVERLIB_GRAPHIC_H_
 
+#include <gdiplus.h>
+#pragma comment(lib, "gdiplus.lib")
 using namespace Gdiplus;
 
 
 namespace roverlib
 {
+
+
+
+	
+	//逐像素混合
+	
+
+
 	void DrawPic(HDC hDC, LPCTSTR lpFileName);
 
 	// 截取图像的一部分
@@ -225,6 +235,103 @@ namespace roverlib
 		FreeResource(lpRsrc);
 		return TRUE;
 	}
+
+	
+	inline int ExtractIconCount(HINSTANCE HInstance, const std::wstring& FileName)
+	{
+		return (int)::ExtractIconW(HInstance, FileName.c_str(), 0xFFFFFFFF);
+	}
+
+
+	inline HICON BitmapToIcon(HBITMAP Bitmap, int cx, int cy)
+	{
+		HICON Result;
+		HIMAGELIST	ImgList;
+		int I;
+		ImgList = ImageList_Create(cx, cy, ILC_COLOR, 1, 1);
+		I = ImageList_Add(ImgList, Bitmap, 0);
+		Result = ImageList_GetIcon(ImgList, I, ILD_NORMAL);
+		ImageList_Destroy(ImgList);
+	}	
+
+	inline HICON BitmapToIcon(HBITMAP Bitmap, HBITMAP Mask, int cx, int cy)
+	{
+		HICON Result;
+		HIMAGELIST	ImgList;
+		int I;
+		ImgList = ImageList_Create(cx, cy, ILC_COLOR, 1, 1);
+		I = ImageList_Add(ImgList, Bitmap, Mask);
+		Result = ImageList_GetIcon(ImgList, I, ILD_TRANSPARENT);
+		ImageList_Destroy(ImgList);
+	}
+
+	inline HBITMAP IconToBitmap(HICON Icon)
+	{
+		HBITMAP Result;
+		ICONINFO IconInfo = {0};
+		if (GetIconInfo(Icon, &IconInfo))
+		{
+			DeleteObject(IconInfo.hbmMask);
+			Result = IconInfo.hbmColor;
+		}
+		return Result;
+	}
+
+	inline IPicture* GetIconExec(const std::wstring& FileName, int IconIndex, bool UseLargeIcon)
+	{
+		HICON Largeicon;
+		HICON Smallicon;
+		HICON Selfhandle;
+		PICTDESC pic;
+		IPicture* Result;	
+
+		memset(&pic, 0, sizeof(pic));
+
+		if (ExtractIconExW(FileName.c_str(), IconIndex, &Largeicon, &Smallicon, 1))
+		{
+			if (UseLargeIcon)
+				Selfhandle = Largeicon;
+			else
+				Selfhandle = Smallicon;			
+
+			pic.cbSizeofstruct = sizeof(pic);
+			pic.picType = PICTYPE_ICON;
+			pic.icon.hicon = Selfhandle;
+
+			OleCreatePictureIndirect(&pic, IID_IPicture, 1, reinterpret_cast<void**>(Result));	
+			::DestroyIcon(Smallicon);
+			::DestroyIcon(Largeicon);
+		}
+
+		return Result;		
+	}
+
+	/************************************************************************/
+	/* RGB                                                                  */
+	/************************************************************************/
+	//inline COLORREF RGB(BYTE r, BYTE g, BYTE b)
+	//{
+	//	return (r | (g << 8) | (b << 16));
+	//}
+
+	//BYTE GetRValue(DWORD rgb)
+	//{
+	//	return BYTE(rgb);
+	//}
+
+	//BYTE GetGValue(DWORD rgb)
+	//{
+	//	return BYTE(rgb >> 8);
+	//}	
+
+	//BYTE GetBValue(DWORD rgb)
+	//{
+	//	return BYTE(rgb >> 16);
+	//}
+
+
+
+
 
 }
 

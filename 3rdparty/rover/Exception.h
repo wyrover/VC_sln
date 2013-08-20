@@ -3,6 +3,7 @@
 
 #include <exception>
 #include <string>
+#include <rover/StrUtils.h>
 
 namespace roverlib {
 
@@ -47,11 +48,11 @@ namespace roverlib {
 			{
 				if ( mLine > 0 )
 				{
-					mFullDesc = utility::toString("MyGUI EXCEPTION : ", mDescription, " in ", mSource, " at ", mFile, " (line ", mLine, ")");
+					mFullDesc = roverlib::utility::toString("MyGUI EXCEPTION : ", mDescription, " in ", mSource, " at ", mFile, " (line ", mLine, ")");
 				}
 				else
 				{
-					mFullDesc = utility::toString("MyGUI EXCEPTION : ", mDescription, " in ", mSource);
+					mFullDesc = roverlib::utility::toString("MyGUI EXCEPTION : ", mDescription, " in ", mSource);
 				}
 			}
 

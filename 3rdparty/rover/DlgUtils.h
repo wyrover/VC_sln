@@ -12,8 +12,7 @@ namespace roverlib
 
 namespace roverlib
 {
-	void SelectFile( HWND hWnd, CString& strFilePath, LPCTSTR lpszFileFilter /*= NULL*/, LPCTSTR lpszTitle /*= NULL */ )
-	{
+	void SelectFile( HWND hWnd, CString& strFilePath, LPCTSTR lpszFileFilter /*= NULL*/, LPCTSTR lpszTitle /*= NULL */ ){
 		OPENFILENAME ofn;
 		ZeroMemory( &ofn, sizeof( ofn ) );
 		ofn.lStructSize			=   sizeof(OPENFILENAME);  

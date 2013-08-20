@@ -289,6 +289,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\3rdparty\rover\DLLImport.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\3rdparty\rover\Exception.h"
 				>
 			</File>
@@ -309,6 +313,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\3rdparty\rover\Registry.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\3rdparty\rover\RegistryUtils.h"
 				>
 			</File>
@@ -321,7 +329,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\3rdparty\rover\Stream.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\3rdparty\rover\StrUtils.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\3rdparty\rover\TextFile.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\3rdparty\rover\Thread.h"
 				>
 			</File>
 		</Filter>

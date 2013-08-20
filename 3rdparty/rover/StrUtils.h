@@ -11,6 +11,13 @@
 namespace roverlib
 {
 	
+	std::string toOctalString(unsigned int n);
+	int strcasecmp(const char* s1, const char* s2);
+	int strncasecmp(const char* s1, const char* s2, size_t count);
+	int vsnprintf(char* buffer, size_t size, const char* format, va_list arguments);
+	int vswprintf(wchar_t* buffer, size_t size, const wchar_t* format, va_list arguments);
+
+
 	LPWSTR		Ansi2Unicode(LPCSTR lpStr, DWORD nMaxLen = 0);
 	LPSTR		Unicode2Ansi(LPCWSTR lpStr, DWORD nMaxLen = 0);
 	LPSTR		ToUTF8Str(LPCSTR lpStr);
@@ -30,7 +37,9 @@ namespace roverlib
 	std::string toLower(const std::string& str);
 	std::string toupper(const std::string& str);
 	std::string trimleft(const std::string& str);
+	void trimleft(std::string& toTrim);
 	std::string trimright(const std::string& str);
+	void trimright(std::string& toTrim);
 	bool startswith(const std::string& str, const std::string& substr);
 	bool endswith(const std::string& str, const std::string& substr);
 	bool endswith(const std::wstring& str, const std::wstring& substr);
@@ -50,8 +59,7 @@ namespace roverlib
 	BOOL GuidIsNull(const GUID &guid);
 	BOOL GuidFromString(LPCTSTR szGuid, GUID &guid);
 	BOOL GuidToString(const GUID &guid, CString &sGuid);
-	CString GetComputerName();
-	CString GetUserName();
+	
 	size_t GetCharNum(LPCTSTR lpszText);
 	DWORD MBCStoUNICODE(const char *szMbcs, wchar_t *szUnicode);
 	DWORD UNICODEtoMBCS(const wchar_t *szUnicode, char *szMbcs);
@@ -65,11 +73,142 @@ namespace roverlib
 	CStringA CStrW2CStrA(const CStringW &cstrSrcW);
 	std::string wstring_to_string(const std::wstring& ws);
 	std::wstring string_to_wstring(const std::string& s);
+
+
+	class StringUtil
+	{
+	public:
+		static const std::string sEmpty;
+		static const std::wstring sWEmpty;
+		static const char* getNotNullString(const char* strValue)
+		{
+			return (strValue?strValue:sEmpty.c_str());
+		}
+
+		static const wchar_t* getNotNullString(const wchar_t* strValue)
+		{
+			return (strValue?strValue:sWEmpty.c_str());
+		}
+
+
+		template<typename StringPtrType>
+		static bool NullOrEmpty(StringPtrType strPtr)
+		{
+			return !(strPtr && strPtr[0]);
+		}
+
+		template<typename StringPtrType>
+		static bool NotNullOrEmpty(StringPtrType strPtr)
+		{
+			return (strPtr && strPtr[0]);
+		}
+
+		template<typename StringType>
+		static void Trim(StringType& toTrim)
+		{
+			TrimRight(toTrim);
+			TrimLeft(toTrim);
+		}
+
+		template<typename StringType>
+		static void TrimLeft(StringType& toTrim)
+		{
+			while (::isspace(toTrim[0]))
+				toTrim.erase(toTrim.begin(), toTrim.begin() + 1);
+		}
+
+		template<typename StringType>
+		static void TrimRight(StringType& toTrim)
+		{
+			while (::isspace(toTrim[toTrim.length() - 1]))
+				toTrim.erase(toTrim.length() - 1);
+		}
+
+		template<typename StringType>
+		static void replace(StringType& strBig, const StringType& strSrc, const StringType& strDst)
+		{
+			typedef typename StringType::size_type size_type;
+			size_type pos = 0;
+			size_type srcLen = strSrc.size();
+			size_type dstLen = strDst.size();
+
+			while((pos=strBig.find(strSrc, pos)) != StringType::npos)
+			{
+				strBig.replace(pos, srcLen, strDst);
+				pos += dstLen;
+			}
+		}
+	};
+
+	__declspec(selectany) const std::wstring StringUtil::sWEmpty = L"";
+	__declspec(selectany) const std::string StringUtil::sEmpty = "";
 }
 
 
 namespace roverlib 
 {	
+	inline std::string toOctalString(unsigned int n)
+	{
+		std::string s;
+		s.resize(32);
+		std::string::size_type charPos = 32;
+		const int radix = 1 << 3;
+		int mask = radix - 1;
+		do
+		{
+			s[--charPos] = '0' + (n & mask);
+			n >>= 3;
+		}
+		while(n != 0);
+
+		return std::string(s, charPos, (32 - charPos));
+	}
+
+
+
+	inline int strcasecmp(const char* s1, const char* s2)
+	{
+		return _stricmp(s1, s2);
+	}
+
+	inline int strncasecmp(const char* s1, const char* s2, size_t count) 
+	{
+		return _strnicmp(s1, s2, count);
+	}
+
+	inline int vsnprintf(char* buffer, size_t size,	const char* format, va_list arguments) 
+	{
+		int length = vsnprintf_s(buffer, size, size - 1, format, arguments);
+		if (length < 0)
+			return _vscprintf(format, arguments);
+		return length;
+	}
+
+	inline int vswprintf(wchar_t* buffer, size_t size, const wchar_t* format, va_list arguments) 
+	{
+		int length = _vsnwprintf_s(buffer, size, size - 1, format, arguments);
+		if (length < 0)
+			return _vscwprintf(format, arguments);
+		return length;
+	}
+
+	inline int snprintf(char* buffer, size_t size, const char* format, ...) 
+	{
+		va_list arguments;
+		va_start(arguments, format);
+		int result = vsnprintf(buffer, size, format, arguments);
+		va_end(arguments);
+		return result;
+	}
+
+	inline int swprintf(wchar_t* buffer, size_t size, const wchar_t* format, ...) 
+	{
+		va_list arguments;
+		va_start(arguments, format);
+		int result = vswprintf(buffer, size, format, arguments);
+		va_end(arguments);
+		return result;
+	}
 
 	LPWSTR Ansi2Unicode(LPCSTR lpStr,  DWORD nMaxLen)
 	{
@@ -299,9 +438,9 @@ namespace roverlib
 
 	std::string trim(const std::string& str)
 	{
-		std::string retval = str;
-		retval.erase(0, retval.find_first_not_of(" /t/n/r")).erase(retval.find_last_not_of(" /t/n/r") + 1);
-		return retval;
+		std::string Result = str;
+		Result.erase(0, Result.find_first_not_of(" /t/n/r")).erase(Result.find_last_not_of(" /t/n/r") + 1);
+		return Result;
 	}	
 
 	std::string& trim(std::string& s) 
@@ -382,37 +521,30 @@ namespace roverlib
 		return !sGuid.IsEmpty();
 	}
 
-
-	CString GetComputerName()
+	std::wstring GetComputerName()
 	{
-		static CString sMachine;
-
-		if (sMachine.IsEmpty())
+		static std::wstring Result;
+		if (Result.empty())
 		{
 			DWORD LEN = MAX_COMPUTERNAME_LENGTH + 1;
-
-			::GetComputerName(sMachine.GetBuffer(LEN), &LEN);
-
-			sMachine.ReleaseBuffer();
+			wchar_t Buffer[MAX_COMPUTERNAME_LENGTH + 1];
+			::GetComputerNameW(Buffer, &LEN);
+			Result = Buffer;
 		}
-
-		return sMachine;
+		return Result;
 	}
 
-	CString GetUserName()
+	std::wstring GetUserName()
 	{
-		static CString sUser;
-
-		if (sUser.IsEmpty())
+		static std::wstring Result;
+		if (Result.empty())
 		{
 			DWORD LEN = UNLEN + 1;
-
-			::GetUserName(sUser.GetBuffer(LEN), &LEN);
-
-			sUser.ReleaseBuffer();
+			wchar_t Buffer[UNLEN + 1];
+			::GetUserNameW(Buffer, &LEN);
+			Result = Buffer;
 		}
-
-		return sUser;
+		return Result;
 	}
 
 
@@ -469,7 +601,7 @@ namespace roverlib
 		wchar_t *pWchar = new wchar_t[dwMinSize];
 		MultiByteToWideChar (CP_ACP, 0, szMbcs, -1, pWchar , dwMinSize); 
 		wcsncpy(szUnicode, pWchar, dwMinSize);
-		*(szUnicode + wcslen(szUnicode)) = '/0';
+		*(szUnicode + wcslen(szUnicode)) = '\0';
 
 		delete [] pWchar; 
 		return dwMinSize;
@@ -544,35 +676,228 @@ namespace roverlib
 		}
 	}
 
-	std::string toLower(const std::string& str)
+	inline std::string toLower(const std::string& str)
 	{
-		std::string retval = str;
-/*		std::transform(retval.begin(), retval.end(), retval.begin(), tolower);*/
-		return retval;
+		std::string Result = str;
+		std::transform(Result.begin(), Result.end(), Result.begin(), ::tolower);
+		return Result;
 	}
 
-	std::string toupper(const std::string& str)
+	inline void toLower(std::string& str)
 	{
-		std::string retval = str;
-/*		std::transform(retval.begin(), retval.end(), retval.begin(), toupper);*/
-		return retval;
+		std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+	}
+	
+
+	inline std::string toUpper(const std::string& str)
+	{
+		std::string Result = str;
+		std::transform(Result.begin(), Result.end(), Result.begin(), ::toupper);
+		return Result;
 	}
 
-	std::string trimleft(const std::string& str)
+	inline void toUpper(std::string& str)
 	{
-		std::string retval = str;
-		retval.erase(0, retval.find_first_not_of(" /t/n/r"));
-		return retval;
+		std::transform(str.begin(), str.end(), str.begin(), ::toupper);
 	}
 
-	std::string trimright(const std::string& str)
+
+	inline void replaceFirst(std::string& str, const std::string& ths, const std::string& with)
+	{
+		size_t start_pos = str.find(ths);
+		if(start_pos != std::string::npos)
+		{
+			str.replace(start_pos, ths.length(), with);
+		}
+	}
+
+	inline std::string replaceFirstCopy(const std::string& str, const std::string& ths, const std::string& with)
+	{
+		std::string Result = str;
+		replaceFirst(Result, ths, with);
+		return Result;
+	}
+
+
+	inline void replaceAll(std::string& str, const std::string& ths, const std::string& with)
+	{
+		if(ths.empty())
+			return;
+		size_t start_pos = 0;
+		while((start_pos = str.find(ths, start_pos)) != std::string::npos) {
+			str.replace(start_pos, ths.length(), with);
+			start_pos += with.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+		}
+	}
+
+	inline std::string replaceAllCopy(const std::string& str, const std::string& ths, const std::string& with)
+	{
+		std::string Result = str;
+		replaceAll(Result, ths, with);
+		return Result;
+	}
+
+	inline void eraseAll(std::string& str, const std::string& ths)
+	{
+		if(ths.empty())
+			return;
+		size_t start_pos = 0;
+		while((start_pos = str.find(ths)) != std::string::npos) {
+			str.erase(start_pos, ths.length());
+		}
+	}
+
+	inline void replaceLast(std::string& str, const std::string& ths, const std::string& with)
+	{
+		size_t start_pos = str.find_last_of(ths);
+		if(start_pos != std::string::npos)
+		{
+			str.replace(start_pos, ths.length(), with);
+		}
+	}
+
+	inline std::string replaceLastCopy(const std::string& str, const std::string& ths, const std::string& with)
+	{
+		std::string Result = str;
+		replaceLast(Result, ths, with);
+		return Result;
+	}
+
+
+
+	inline void splitInternal(std::vector<std::string>& output, const std::string& input, const std::string& delimiter)
+	{
+		size_t start = 0;
+
+		std::string temp = input;
+		start = temp.find(delimiter);
+		while(start != std::string::npos)
+		{
+			if(start!=0)
+			{
+				output.push_back(temp.substr(0, start));
+			}
+			else
+			{
+				output.push_back("");
+			}
+			if(temp.length()>start+delimiter.length())
+			{
+				temp = temp.substr(start+delimiter.length());
+				start = temp.find(delimiter);
+			}
+			else
+			{
+				temp = temp.substr(start);
+				break;
+			}
+		}
+		replaceFirst(temp, delimiter, "");
+		output.push_back(temp);
+	}
+
+	
+
+
+	inline void split(std::vector<std::string> &output, const std::string& input, const std::string& delimiter)
+	{
+		output.clear();
+		splitInternal(output, input, delimiter);
+	}
+
+	inline std::vector<std::string> split(const std::string& input, const std::string& delimiter)
+	{
+		std::vector<std::string> output;
+		split(output, input, delimiter);
+		return output;
+
+	}
+
+	
+
+	inline void split(std::vector<std::string>& output, const std::string& input, std::vector<std::string> delimiters)
+	{
+		output.clear();
+		output.push_back(input);
+		for (int var = 0; var < (int)delimiters.size(); ++var) {
+			std::vector<std::string> output1;
+			for (int var1 = 0; var1 < (int)output.size(); ++var1) {
+				splitInternal(output1, output.at(var1), delimiters.at(var));
+			}
+			output.swap(output1);
+		}
+	}
+
+	inline std::vector<std::string> split(const std::string& input, std::vector<std::string> delimiters)
+	{
+		std::vector<std::string> output;
+		split(output, input, delimiters);
+		return output;
+	}
+
+
+	inline std::string joinString(const std::vector<std::string>& values, const std::string& delimiter)
+	{
+		std::ostringstream out;
+		for(unsigned int i = 0; i < values.size(); i++)
+		{
+			if(i != 0)
+			{
+				out << delimiter;
+			}
+			out << values[i];
+		}
+		return out.str();
+	}
+
+
+	inline std::string removeWhitespace(const std::string& S)
+	{
+		std::string Result;
+		for(unsigned int i = 0; i < S.length(); ++ i)
+		{
+			if(!isspace(static_cast<unsigned char>(S[i])))
+			{
+				Result += S[i];
+			}
+		}
+		return Result;
+	}
+
+
+
+
+	inline std::string trimleft(const std::string& str)
+	{
+		std::string Result = str;
+		Result.erase(0, Result.find_first_not_of(" /t/n/r"));
+		return Result;
+	}
+
+
+	inline void trimleft(std::string& toTrim)
+	{
+		while (::isspace(toTrim[0]))
+			toTrim.erase(toTrim.begin(), toTrim.begin() + 1);
+	}
+
+
+	inline std::string trimright(const std::string& str)
 	{
 		std::string retval = str;
 		retval.erase(retval.find_last_not_of(" /t/n/r") + 1);
 		return retval;
 	}
 
-	bool startswith(const std::string& str, const std::string& substr )
+
+	inline void trimright(std::string& toTrim)
+	{
+		while (::isspace(toTrim[toTrim.length() - 1]))
+			toTrim.erase(toTrim.length() - 1);
+	}
+
+
+	inline bool startswith(const std::string& str, const std::string& substr )
 	{
 		return str.find(substr) == 0;
 	}
@@ -721,7 +1046,6 @@ namespace roverlib
 		setlocale(LC_ALL, curLocale.c_str());
 		return result;
 	}
-
 
 
 	namespace utility
