@@ -1,0 +1,7 @@
+LIBRARY "DiskID"
+EXPORTS 
+  ReadPhysicalDriveInNT  @1
+  ReadDrivePortsInWin9X @2
+  ReadIdeDriveAsScsiDriveInNT @3
+  getHardDriveComputerID @4
+  IsWinNT @5
