@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="VS2005WTL2"
-	ProjectGUID="{4783B7C6-FEEE-4027-9AF3-CBEF84DEFA73}"
-	RootNamespace="VS2005WTL2"
+	Name="WTLuaPlus"
+	ProjectGUID="{69D8D213-715E-4D90-B969-A8EF433EE0F8}"
+	RootNamespace="WTLuaPlus"
 	>
 	<Platforms>
 		<Platform
@@ -41,11 +41,11 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/VS2005WTL2.tlb"
-				HeaderFileName="VS2005WTL2.h"
+				TypeLibraryName="$(IntDir)/WTLuaPlus.tlb"
+				HeaderFileName="WTLuaPlus.h"
 				DLLDataFileName=""
-				InterfaceIdentifierFileName="VS2005WTL2_i.c"
-				ProxyFileName="VS2005WTL2_p.c"
+				InterfaceIdentifierFileName="WTLuaPlus_i.c"
+				ProxyFileName="WTLuaPlus_p.c"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -134,11 +134,11 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/VS2005WTL2.tlb"
-				HeaderFileName="VS2005WTL2.h"
+				TypeLibraryName="$(IntDir)/WTLuaPlus.tlb"
+				HeaderFileName="WTLuaPlus.h"
 				DLLDataFileName=""
-				InterfaceIdentifierFileName="VS2005WTL2_i.c"
-				ProxyFileName="VS2005WTL2_p.c"
+				InterfaceIdentifierFileName="WTLuaPlus_i.c"
+				ProxyFileName="WTLuaPlus_p.c"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -168,6 +168,7 @@
 				OutputFile="../../product/win32/$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../lib/win32"
+				IgnoreDefaultLibraryNames=""
 				ProgramDatabaseFile="../../product/win32/dbginfo/$(ProjectName).pdb"
 				SubSystem="2"
 				ImportLibrary="../../tmp/$(ConfigurationName)/$(ProjectName)/$(TargetName).lib"
@@ -227,7 +228,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\VS2005WTL2.cpp"
+				RelativePath=".\WTLuaPlus.cpp"
 				>
 			</File>
 		</Filter>
@@ -253,11 +254,11 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest"
 			>
 			<File
-				RelativePath=".\res\VS2005WTL2.ico"
+				RelativePath=".\res\WTLuaPlus.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\VS2005WTL2.rc"
+				RelativePath=".\WTLuaPlus.rc"
 				>
 			</File>
 		</Filter>
@@ -281,23 +282,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdparty\rover\Diagnostic.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\3rdparty\rover\DlgUtils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\DLLImport.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\Exception.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\FactoryManager.h"
 				>
 			</File>
 			<File
@@ -313,10 +298,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdparty\rover\Registry.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\3rdparty\rover\RegistryUtils.h"
 				>
 			</File>
@@ -325,23 +306,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdparty\rover\Singleton.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\Stream.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\3rdparty\rover\StrUtils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\TextFile.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\Thread.h"
 				>
 			</File>
 		</Filter>
@@ -349,7 +314,7 @@
 	<Globals>
 		<Global
 			Name="RESOURCE_FILE"
-			Value="VS2005WTL2.rc"
+			Value="WTLuaPlus.rc"
 		/>
 	</Globals>
 </VisualStudioProject>

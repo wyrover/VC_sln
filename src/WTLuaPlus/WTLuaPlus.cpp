@@ -1,4 +1,4 @@
-// VS2005WTL2.cpp : main source file for VS2005WTL2.exe
+// WTLuaPlus.cpp : main source file for WTLuaPlus.exe
 //
 
 #include "stdafx.h"

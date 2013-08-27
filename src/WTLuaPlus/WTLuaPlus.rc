@@ -53,7 +53,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\VS2005WTL2.ico"
+IDR_MAINFRAME           ICON                    "res\\WTLuaPlus.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -66,21 +66,17 @@ CAPTION "About"
 FONT 8, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,130,81,50,14
-    CTEXT           "VS2005WTL2 Application v1.0\n\n(c) Copyright 2013",IDC_STATIC,25,57,78,32
+    CTEXT           "WTLuaPlus Application v1.0\n\n(c) Copyright 2013",IDC_STATIC,25,57,78,32
     ICON            IDR_MAINFRAME,IDC_STATIC,55,26,18,20
     GROUPBOX        "",IDC_STATIC,7,7,115,88
 END
 
 IDD_MAINDLG DIALOGEX 0, 0, 396, 233
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
-CAPTION "VS2005WTL2"
+CAPTION "WTLuaPlus"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     PUSHBUTTON      "Button1",IDC_BUTTON1,31,199,50,14
-    PUSHBUTTON      "Button2",IDC_BUTTON2,107,199,50,14
-    PUSHBUTTON      "Button3",IDC_BUTTON3,184,196,50,14
-    PUSHBUTTON      "Button4",IDC_BUTTON4,266,191,50,14
-    PUSHBUTTON      "Button5",IDC_BUTTON5,330,191,50,14
 END
 
 
@@ -157,12 +153,12 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "FileDescription", "VS2005WTL2 Module"
+            VALUE "FileDescription", "WTLuaPlus Module"
             VALUE "FileVersion", "1, 0, 0, 1"
-            VALUE "InternalName", "VS2005WTL2"
+            VALUE "InternalName", "WTLuaPlus"
             VALUE "LegalCopyright", "Copyright 2013"
-            VALUE "OriginalFilename", "VS2005WTL2.exe"
-            VALUE "ProductName", "VS2005WTL2 Module"
+            VALUE "OriginalFilename", "WTLuaPlus.exe"
+            VALUE "ProductName", "WTLuaPlus Module"
             VALUE "ProductVersion", "1, 0, 0, 1"
         END
     END
@@ -180,7 +176,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDR_MAINFRAME           "VS2005WTL2"
+    IDR_MAINFRAME           "WTLuaPlus"
 END
 
 STRINGTABLE 

@@ -29,22 +29,27 @@ extern CAppModule _Module;
 #include <boost/smart_ptr.hpp>
 #include <boost/make_shared.hpp>
 
+#include <LuaPlus/LuaPlus.h>
+using namespace LuaPlus;
+#ifdef _DEBUG
+	#pragma comment(lib, "LuaPlusd.lib")	
+#else
+	#pragma comment(lib, "LuaPlus.lib")	
+#endif
+
+	
+
+
+
+
+
+
 
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
-#include <rover/StrUtils.h>
 #include <rover/PathUtils.h>
 #include <rover/Graphic.h>
 #include <rover/OSUtils.h>
-#include <rover/FactoryManager.h>
-#include <rover/Singleton.h>
-#include <rover/Exception.h>
-#include <rover/Diagnostic.h>
-#include <rover/TextFile.h>
-#include <rover/Stream.h>
-#include <rover/Registry.h>
-#include <rover/DLLImport.h>
-
 
 
 #if defined _M_IX86
