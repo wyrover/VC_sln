@@ -32,7 +32,8 @@
 
 
 
-@set MYCOMPILE=cl /nologo /O2 /W3 /c /D_CRT_SECURE_NO_DEPRECATE
+@set MYCOMPILE=cl /nologo /W3 /c /D_CRT_SECURE_NO_DEPRECATE /D "WIN32"
+@set MKLIB=lib /nologo
 
 
 cd %~dp0
@@ -42,24 +43,24 @@ cd lua
 
 :build MTd_DLL
 del *.obj
-%MYCOMPILE% /MTd /DLUA_BUILD_AS_DLL l*.c 
+%MYCOMPILE% /Od /MTd /D_DEBUG /DLUA_BUILD_AS_DLL l*.c 
 del lua.obj luac.obj
 link /DLL /out:"../../product/win32d/lua51_MTd.dll" l*.obj
-%MYCOMPILE% /MTd /DLUA_BUILD_AS_DLL lua.c
+%MYCOMPILE% /Od /MTd /D_DEBUG /DLUA_BUILD_AS_DLL lua.c
 link /out:"../../product/win32d/lua_MTd.exe" /LIBPATH:"../../product/wind32d/" lua.obj lua51_MTd.lib
 del lua.obj
-%MYCOMPILE% /MTd /DLUA_BUILD_AS_DLL luac.c print.c
+%MYCOMPILE% /Od /MTd /D_DEBUG /DLUA_BUILD_AS_DLL luac.c print.c
 link /out:"../../product/win32d/luac_MTd.exe" /LIBPATH:"../../product/win32d/" l*.obj print.obj
 
 :build MT_DLL
 del *.obj
-%MYCOMPILE% /MT /DLUA_BUILD_AS_DLL l*.c 
+%MYCOMPILE% /O2 /MT /DLUA_BUILD_AS_DLL l*.c 
 del lua.obj luac.obj
 link /DLL /out:"../../product/win32/lua51_MT.dll" l*.obj
-%MYCOMPILE% /MT /DLUA_BUILD_AS_DLL lua.c
+%MYCOMPILE% /O2 /MT /DLUA_BUILD_AS_DLL lua.c
 link /out:"../../product/win32/lua_MT.exe" /LIBPATH:"../../product/win32/" lua.obj lua51_MT.lib
 del lua.obj
-%MYCOMPILE% /MT /DLUA_BUILD_AS_DLL luac.c print.c
+%MYCOMPILE% /O2 /MT /DLUA_BUILD_AS_DLL luac.c print.c
 link /out:"../../product/win32/luac_MT.exe" /LIBPATH:"../../product/win32/" l*.obj print.obj
 
 
@@ -67,16 +68,16 @@ link /out:"../../product/win32/luac_MT.exe" /LIBPATH:"../../product/win32/" l*.o
 
 :build MTd_LIB
 del *.obj
-%MYCOMPILE% /MTd l*.c 
+%MYCOMPILE% /Od /MTd /D_DEBUG /D_LIB l*.c 
 del lua.obj luac.obj
-link /DLL /out:"../../lib/win32d/lua51d.lib" l*.obj
+%MKLIB% /out:"../../lib/win32d/lua51d.lib" l*.obj
 
 
 :build MT_LIB
 del *.obj
-%MYCOMPILE% /MT l*.c 
+%MYCOMPILE% /O2 /MT /D_LIB l*.c 
 del lua.obj luac.obj
-link /DLL /out:"../../lib/win32/lua51.lib" l*.obj
+%MKLIB% /out:"../../lib/win32/lua51.lib" l*.obj
 
 
 del *.obj *.dll *.exp *.lib
