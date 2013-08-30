@@ -17,6 +17,14 @@ CAppModule _Module;
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR /*lpstrCmdLine*/, int /*nCmdShow*/)
 {
+
+	LPWSTR commandLine = GetCommandLineW();
+	int argcw = 0;
+	LPWSTR *argvw = CommandLineToArgvW(commandLine, &argcw);
+	if (!argvw)
+		return 127;
+
+
 	HRESULT hRes = ::CoInitialize(NULL);
 // If you are running on NT 4.0 or higher you can use the following call instead to 
 // make the EXE free threaded. This means that calls come in on a random RPC thread.
@@ -49,6 +57,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR /*
 	GdiplusShutdown(gdiplusToken);
 
 	::CoUninitialize();
+
+	LocalFree(argvw);
 
 	return nRet;
 }

@@ -31,25 +31,23 @@ extern CAppModule _Module;
 
 #include <LuaPlus/LuaPlus.h>
 using namespace LuaPlus;
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUG)
 	#pragma comment(lib, "LuaPlusd.lib")	
 #else
 	#pragma comment(lib, "LuaPlus.lib")	
 #endif
 
-	
-
-
-
-
-
-
 
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
-#include <rover/PathUtils.h>
-#include <rover/Graphic.h>
-#include <rover/OSUtils.h>
+
+#include <rover/rover.h>
+
+#define cairo_public 
+#include <cairo-win32.h>
+#pragma comment(lib, "cairo-static.lib")
+#pragma comment(lib, "libpng.lib")
+#pragma comment(lib, "zlib.lib")
 
 
 #if defined _M_IX86

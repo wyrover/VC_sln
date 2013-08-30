@@ -338,6 +338,143 @@ namespace roverlib
 		ShellExecute(NULL, _T("open"), _T("regedit.exe"), strParameters, NULL, SW_HIDE);
 	}
 
+
+
+	static bool GetKeyValue(const WCHAR *keyLocation, const WCHAR *keyName, std
+		::wstring &destString, int type)
+	{
+		HKEY key;
+		DWORD dwcbData;
+		DWORD dValue;
+		DWORD resultType;
+		LONG result;
+		bool retval = true;
+
+		result = RegOpenKeyExW(HKEY_LOCAL_MACHINE, keyLocation, 0, KEY_QUERY_VALUE,
+			&key);
+		if (result != ERROR_SUCCESS)
+		{
+			return false;
+		}
+
+		switch (type)
+		{
+		case REG_DWORD:
+			{
+				// We only use this for vram size
+				dwcbData = sizeof(dValue);
+				result = RegQueryValueExW(key, keyName, NULL, &resultType,
+					(LPBYTE) &dValue, &dwcbData);
+				if (result == ERROR_SUCCESS && resultType == REG_DWORD)
+				{
+					dValue = dValue / 1024 / 1024;					
+					WCHAR msg[1024] = {0};
+					_snwprintf(msg, 1024, L"%s", dValue);
+					destString.append(msg);
+				}
+				else
+				{
+					retval = false;
+				}
+				break;
+			}
+		case REG_MULTI_SZ:
+			{
+				// A chain of null-separated strings; we convert the nulls to spaces
+				WCHAR wCharValue[1024];
+				dwcbData = sizeof(wCharValue);
+
+				result = RegQueryValueExW(key, keyName, NULL, &resultType,
+					(LPBYTE)wCharValue, &dwcbData);
+				if (result == ERROR_SUCCESS && resultType == REG_MULTI_SZ)
+				{
+					// This bit here could probably be cleaner.
+					bool isValid = false;
+
+					DWORD strLen = dwcbData / sizeof(wCharValue[0]);
+					for (DWORD i = 0; i < strLen; i++)
+					{
+						if (wCharValue[i] == '\0')
+						{
+							if (i < strLen - 1 && wCharValue[i + 1] == '\0')
+							{
+								isValid = true;
+								break;
+							}
+							else
+							{
+								wCharValue[i] = ' ';
+							}
+						}
+					}
+
+					// ensure wCharValue is null terminated
+					wCharValue[strLen - 1] = '\0';
+
+					if (isValid)
+						destString.append(wCharValue);
+
+				}
+				else
+				{
+					retval = false;
+				}
+
+				break;
+			}
+		}
+		RegCloseKey(key);
+
+		return retval;
+	}
+
+
+
+
+	inline bool GetFirefoxDirFromRegistry(char *firefoxDir)
+	{
+		HKEY key;
+		wchar_t wideGreDir[MAX_PATH+1] = {0};
+
+		if (ERROR_SUCCESS != RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows"
+			L"\\CurrentVersion\\App paths\\firefox.exe", 0, KEY_READ,  &key))
+		{
+			return false;
+		}
+
+		DWORD length = MAX_PATH * sizeof(wchar_t);
+		// XXX: When Vista/XP64 become our minimum supported client, we can use
+		//      RegGetValue instead
+		if (ERROR_SUCCESS != RegQueryValueExW(key, L"Path", NULL, NULL,
+			reinterpret_cast < BYTE * > (wideGreDir),  &length))
+		{
+			RegCloseKey(key);
+			return false;
+		};
+		RegCloseKey(key);
+
+		// According to this article, we need to write our own null terminator:
+		// http://msdn.microsoft.com/en-us/library/ms724911%28v=vs.85%29.aspx
+		length = length / sizeof(wchar_t);
+		if (wideGreDir[length] != L'\0')
+		{
+			if (length >= MAX_PATH)
+			{
+				return false;
+			}
+			wideGreDir[length] = L'\0';
+		}
+
+		if (0 == WideCharToMultiByte(CP_UTF8, 0, wideGreDir,  - 1, firefoxDir,
+			MAX_PATH, NULL, NULL))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+
 }
 
 

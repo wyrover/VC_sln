@@ -4,6 +4,8 @@
 
 #pragma once
 
+#define M_PI       3.14159265358979323846
+
 static int PrintLSNumber(LuaState* state)
 {
 	LuaStack args(state);
@@ -14,6 +16,28 @@ static int PrintLSNumber(LuaState* state)
 	}
 	// No return values.
 	return 0;
+}
+
+
+void gradientExample( cairo_t* cr ) {
+	cairo_pattern_t *pat;
+
+	pat = cairo_pattern_create_linear (0.0, 0.0,  0.0, 256.0);
+	cairo_pattern_add_color_stop_rgba (pat, 1, 0, 0, 0, 1);
+	cairo_pattern_add_color_stop_rgba (pat, 0, 1, 1, 1, 1);
+	cairo_rectangle (cr, 0, 0, 256, 256);
+	cairo_set_source (cr, pat);
+	cairo_fill (cr);
+	cairo_pattern_destroy (pat);
+
+	pat = cairo_pattern_create_radial (115.2, 102.4, 25.6,
+		102.4,  102.4, 128.0);
+	cairo_pattern_add_color_stop_rgba (pat, 0, 1, 1, 1, 1);
+	cairo_pattern_add_color_stop_rgba (pat, 1, 0, 0, 0, 1);
+	cairo_set_source (cr, pat);
+	cairo_arc (cr, 128.0, 128.0, 76.8, 0, 2 * M_PI);
+	cairo_fill (cr);
+	cairo_pattern_destroy (pat);
 }
 
 
@@ -58,7 +82,7 @@ public:
 
 		int iret = state->DoFile("test2.lua");
 
-		
+		mozilla::AvailableMemoryTracker::Init();
 
 		return TRUE;
 	}
@@ -86,9 +110,19 @@ public:
 	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{		
 		WTL::CPaintDC dc(m_hWnd);
-		Graphics g(dc.m_hDC);
-		DrawPic(dc.m_hDC, L"img\\png-0070.png");		
 
+		// Create the cairo surface and context.
+		cairo_surface_t *surface = cairo_win32_surface_create (dc.m_hDC);
+		cairo_t *cr = cairo_create (surface);
+
+		// Draw on the cairo context.
+		gradientExample( cr );
+
+		// Cleanup.
+		cairo_destroy (cr);
+		cairo_surface_destroy (surface);
+
+	
 		return 0;
 	}
 
@@ -126,7 +160,10 @@ public:
 		LuaFunction<int> Add =  state->GetGlobal("Add");
 		int myret = Add(3, 4);
 		std::cout << "Call add() in luascript,ret=" << myret << std::endl;
+
 		
+		
+		::MessageBoxW(NULL, L"testÀ¹½Ø", L"ahahah", MB_OK);
 
 		return 0;
 	}

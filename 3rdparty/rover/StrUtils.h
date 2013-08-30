@@ -8,6 +8,11 @@
 #include <iomanip>
 #include <Lmcons.h>
 
+
+
+
+
+
 namespace roverlib
 {
 	
@@ -63,6 +68,8 @@ namespace roverlib
 	size_t GetCharNum(LPCTSTR lpszText);
 	DWORD MBCStoUNICODE(const char *szMbcs, wchar_t *szUnicode);
 	DWORD UNICODEtoMBCS(const wchar_t *szUnicode, char *szMbcs);
+	std::wstring string2wstring(const std::string & rString, UINT codepage);
+	std::string wstring2string(const std::wstring & rwString, UINT codepage);
 	void Split(CString source, std::vector<CString>& dest, CString division);
 	void TestCStringFormat();
 	void TestCStringTostring();
@@ -625,6 +632,35 @@ namespace roverlib
 		delete [] pChar;
 		return dwNum;
 	}
+
+
+	std::wstring string2wstring(const std::string & rString, UINT codepage)
+	{
+		int len = MultiByteToWideChar(codepage, 0, rString.c_str(), -1, NULL, 0);
+		if(len > 0)
+		{		
+			std::vector<wchar_t> vw(len);
+			MultiByteToWideChar(codepage, 0, rString.c_str(), -1, &vw[0], len);
+			return &vw[0];
+		}
+		else
+			return L"";
+	}
+
+	std::string wstring2string(const std::wstring & rwString, UINT codepage)
+	{
+		int len = WideCharToMultiByte(codepage, 0, rwString.c_str(), -1, NULL, 0, NULL, NULL);
+		if(len > 0)
+		{		
+			std::vector<char> vw(len);
+			WideCharToMultiByte(codepage, 0, rwString.c_str(), -1, &vw[0], len, NULL, NULL);
+			return &vw[0];
+		}
+		else
+			return "";
+	}
+
+
 	
 	void TestCStringFormat()
 	{

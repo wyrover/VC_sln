@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../publish;../../include;../../3rdparty;../../3rdparty/wtl"
+				AdditionalIncludeDirectories="../../publish;../../include;../../3rdparty;../../3rdparty/wtl;../../3rdparty/msvc_compat"
 				PreprocessorDefinitions=" _CRT_SECURE_NO_DEPRECATE;WIN32;_WINDOWS;STRICT;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -143,7 +143,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/EHsc"
-				AdditionalIncludeDirectories="../../publish;../../include;../../3rdparty;../../3rdparty/wtl"
+				AdditionalIncludeDirectories="../../publish;../../include;../../3rdparty;../../3rdparty/wtl;../../3rdparty/msvc_compat;../../3rdparty/cairo"
 				PreprocessorDefinitions=" _CRT_SECURE_NO_DEPRECATE;WIN32;_WINDOWS;STRICT;NDEBUG"
 				ExceptionHandling="0"
 				RuntimeLibrary="0"
@@ -168,7 +168,7 @@
 				OutputFile="../../product/win32/$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../lib/win32"
-				IgnoreDefaultLibraryNames=""
+				IgnoreDefaultLibraryNames="MSVCRT.lib"
 				ProgramDatabaseFile="../../product/win32/dbginfo/$(ProjectName).pdb"
 				SubSystem="2"
 				ImportLibrary="../../tmp/$(ConfigurationName)/$(ProjectName)/$(TargetName).lib"
@@ -290,6 +290,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\3rdparty\rover\MemoryTracker.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\3rdparty\rover\OSUtils.h"
 				>
 			</File>
@@ -306,7 +310,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\3rdparty\rover\roverint.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\3rdparty\rover\StrUtils.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\3rdparty\rover\UniConversion.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\3rdparty\rover\UTF8Utils.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\3rdparty\rover\WinObjs.h"
 				>
 			</File>
 		</Filter>

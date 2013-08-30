@@ -69,6 +69,7 @@ namespace roverlib
 	std::wstring GetShellFolderPath(int CSIDL);
 	bool FileExists(const std::wstring& FileName);
 	bool DirectoryExists(const std::wstring& Directory);
+	DWORD GetLargeFileSize(const std::wstring& FileName);
 	
 }
 
@@ -198,6 +199,12 @@ namespace roverlib
 		return false;
 	}
 
+	inline std::wstring GetCurrentWorkingDir()
+	{
+		wchar_t Buffer[MAX_PATH + 1] = {0};
+		_wgetcwd(Buffer, MAX_PATH);
+		return std::wstring(Buffer);		
+	}
 
 
 	inline bool SetCurrentDir(const std::wstring& Dir)
@@ -427,12 +434,19 @@ namespace roverlib
 		return retval;
 	}
 
+	inline FILE *TS_tfopen(const char* FileName, const wchar_t *mode)
+	{
+		wchar_t wFileName[MAX_PATH];
+		MultiByteToWideChar(CP_UTF8, 0, FileName, -1, wFileName, MAX_PATH);
+		return _wfopen(wFileName, mode);		
+	}
 
-	inline void LogWrite(const char* filename, const char* text)
+
+	inline void LogWrite(const char* FileName, const char* text)
 	{
 		FILE *fp;	
 		errno_t err;
-		err = fopen_s(&fp, filename, "w");
+		err = fopen_s(&fp, FileName, "w");
 		if (err == 0)
 		{
 			fprintf(fp, text);
@@ -1041,9 +1055,45 @@ namespace roverlib
 	}
 
 
-	
+	inline DWORD GetLargeFileSize(const std::wstring& FileName)
+	{
+		DWORD dwSizeHigh;
+		DWORD dwSizeLow = GetCompressedFileSize(FileName.c_str(), &dwSizeHigh);
+		return dwSizeHigh;
+	}
 	
 
+
+	inline std::wstring getFullPath(wchar_t* filePath, wchar_t* fname)
+	{
+		std::wstring Result = L"";
+		// In Windows 8, the first parameter seems to be used for more than just the
+		// path name.  For example, its numerical value can be 1.  Passing a non-valid
+		// pointer to SearchPathW will cause a crash, so we need to check to see if we
+		// are handed a valid pointer, and otherwise just pass NULL to SearchPathW.
+		PWCHAR sanitizedFilePath = (intptr_t(filePath) < 1024) ? NULL : filePath;
+
+		// figure out the length of the string that we need
+		DWORD pathlen = SearchPathW(sanitizedFilePath, fname, L".dll", 0, NULL,
+			NULL);
+		if (pathlen == 0)
+		{
+			return Result;
+		}
+
+		wchar_t* full_fname = new wchar_t[pathlen+1];
+		if (!full_fname) {			
+			return Result;			
+		}
+
+		// now actually grab it
+		SearchPathW(sanitizedFilePath, fname, L".dll", pathlen + 1, full_fname,
+			NULL);
+		Result = std::wstring(full_fname);
+
+		delete[] full_fname;
+		return Result;
+	}
 	
 
 }

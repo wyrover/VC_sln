@@ -306,21 +306,41 @@ namespace roverlib
 	inline void InitConsole()
 	{
 		
-		AllocConsole(); 
-		HANDLE hin = ::GetStdHandle (STD_INPUT_HANDLE );                         
-		HANDLE hout = ::GetStdHandle (STD_OUTPUT_HANDLE ); 
-		SetConsoleTextAttribute(hout, 0x0a);
+		BOOL rc = ::AllocConsole(); 
+		if (rc)
+		{
 
-		int hcin = _open_osfhandle ((intptr_t )hin ,_O_TEXT );
-		FILE * fpin = _fdopen(hcin ,"r" );
-		*stdin = *fpin ;   //stdin 就指向了文件指针
-		int hcout = _open_osfhandle((intptr_t )hout ,_O_TEXT );
-		FILE * fpout = _fdopen(hcout ,"wt"); 
-		*stdout = *fpout ; 
-		std ::ios_base ::sync_with_stdio();      // 将iostream 流同c runtime lib 的stdio 同步，标准是同步的 
-		locale::global(locale(""));
-		//setlocale(LC_CTYPE, "");    // MinGW gcc.
-		wcout.imbue(locale(""));
+			
+			HANDLE hin = ::GetStdHandle (STD_INPUT_HANDLE );                         
+			HANDLE hout = ::GetStdHandle (STD_OUTPUT_HANDLE ); 
+			SetConsoleTextAttribute(hout, 0x0a);
+
+			int hCrt = _open_osfhandle ((intptr_t )hin ,_O_TEXT );
+			if (hCrt != -1)
+			{
+				FILE * fpin = _fdopen(hCrt ,"r" );
+				if (fpin) *stdin = *fpin ;   
+			}
+			
+			hCrt = _open_osfhandle((intptr_t )hout ,_O_TEXT );
+			if (hCrt != -1)
+			{
+				FILE * fpout = _fdopen(hCrt ,"wt"); 
+				if (fpout) *stdout = *fpout ; 
+			}		
+
+			hCrt = _open_osfhandle( (intptr_t)::GetStdHandle( STD_ERROR_HANDLE ), _O_TEXT );
+			if (hCrt != -1)
+			{
+				FILE *hf = ::_fdopen( hCrt, "w" );
+				if ( hf ) *stderr = *hf;
+			}
+			
+			std ::ios_base ::sync_with_stdio();      // 将iostream 流同c runtime lib 的stdio 同步，标准是同步的 
+			locale::global(locale(""));
+			//setlocale(LC_CTYPE, "");    // MinGW gcc.
+			wcout.imbue(locale(""));
+		}
 		
 	}
 
@@ -646,6 +666,75 @@ namespace roverlib
 		}
 
 		return Result;
+	}
+
+
+
+	inline BOOL WINAPI InjectDllWithLoadLibrary(HANDLE hProcess,LPCTSTR lpszDllPath)//;  //使用 LoadLibrary的方式注入dll
+	{
+		LPVOID lpNameAddr=VirtualAllocEx(hProcess,NULL,lstrlen(lpszDllPath)+sizeof(TCHAR),MEM_COMMIT,PAGE_EXECUTE_READWRITE);
+		if (lpNameAddr==NULL)
+		{
+			return FALSE;
+		}
+		if (!WriteProcessMemory(hProcess,lpNameAddr,lpszDllPath,lstrlen(lpszDllPath),NULL))
+		{
+			VirtualFree(lpNameAddr,NULL,MEM_FREE);
+			return FALSE;
+		}
+		LPVOID lpLoadLibraryAddr=(LPVOID)GetModuleHandle(_T("Kernel32.dll"));
+		lpLoadLibraryAddr=(LPVOID)GetProcAddress((HMODULE)lpLoadLibraryAddr,
+#ifdef UNICODE
+			"LoadLibraryW"
+#else
+			"LoadLibraryA"
+#endif	
+			);
+		HANDLE hThread=CreateRemoteThread(hProcess,NULL,NULL,(LPTHREAD_START_ROUTINE)lpLoadLibraryAddr,lpNameAddr,NULL,NULL);
+		if (hThread==NULL)
+		{
+			VirtualFree(lpNameAddr,NULL,MEM_FREE);
+			return FALSE;
+		}
+		WaitForSingleObject(hThread,INFINITE);
+		CloseHandle(hThread);
+		VirtualFree(lpNameAddr,NULL,MEM_FREE);
+		return TRUE;
+	}
+
+
+	// 进程提权
+	inline BOOL EnablePriv()
+	{
+		HANDLE hToken;
+		if (OpenProcessToken(GetCurrentProcess(),TOKEN_ADJUST_PRIVILEGES,&hToken))
+		{
+			TOKEN_PRIVILEGES tkp;
+
+			LookupPrivilegeValue( NULL,SE_DEBUG_NAME,&tkp.Privileges[0].Luid );//修改进程权限
+			tkp.PrivilegeCount=1;
+			tkp.Privileges[0].Attributes=SE_PRIVILEGE_ENABLED;
+			AdjustTokenPrivileges( hToken,FALSE,&tkp,sizeof tkp,NULL,NULL );//通知系统修改进程权限
+
+			return( (GetLastError()==ERROR_SUCCESS) );
+		}
+		return TRUE;
+	}
+
+	
+	// 生成[0,b-a)的随机值
+	double random(double a, double b)
+	{		
+		double res;
+		do
+		{
+			// 在[0,b-a)取随机值
+			res = ((double)rand() / (double)(RAND_MAX + 1.0))*(b - a);
+			// 变换到[a,b)
+			res += a;
+		}
+		while (!(a <= res && res < b)); //		
+		return res;
 	}
 
 }
