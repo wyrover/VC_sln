@@ -36,6 +36,15 @@ namespace roverlib
 	void CreateRegKey(const std::wstring& Key, const std::wstring& ValueName, const std::wstring& Value, HKEY RootKey = HKEY_CLASSES_ROOT);
 	void DeleteRegKey(const std::wstring& Key, HKEY RootKey = HKEY_CLASSES_ROOT);
 	std::wstring GetRegStringValue(const std::wstring& Key, const std::wstring& ValueName, HKEY RootKey = HKEY_CLASSES_ROOT);
+
+
+
+	void RefreshTray();
+	void KillProcessByHwnd(HWND hWnd);
+	void PopUsbRemoveWindow();
+
+
+
 }
 
 namespace roverlib 
@@ -64,7 +73,7 @@ namespace roverlib
 	BOOL IsCurrentUserAdmin()  
 	{    
 		HANDLE hAccessToken;    
-		BYTE * InfoBuffer = new BYTE[1024];    
+		BYTE* InfoBuffer = new BYTE[1024];    
 		PTOKEN_GROUPS ptgGroups;    
 		DWORD dwInfoBufferSize;    
 		PSID psidAdministrators;    
@@ -72,13 +81,13 @@ namespace roverlib
 
 		if(!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,&hAccessToken))    
 		{    
-			delete InfoBuffer;    
+			delete[] InfoBuffer;    
 			return FALSE;    
 		}    
 
 		if(!GetTokenInformation(hAccessToken,TokenGroups,InfoBuffer,1024,&dwInfoBufferSize))    
 		{    
-			delete InfoBuffer;    
+			delete[] InfoBuffer;    
 			CloseHandle(hAccessToken);    
 			return FALSE;    
 		}    
@@ -92,7 +101,7 @@ namespace roverlib
 			0,0,0,0,0,0,    
 			&psidAdministrators))    
 		{    
-			delete InfoBuffer;    
+			delete[] InfoBuffer;    
 			return FALSE;    
 		}    
 
@@ -439,7 +448,7 @@ namespace roverlib
 			lProcAddress = GetProcAddress(hLib, purpose.c_str());
 			if (lProcAddress)
 			{
-				lThread = ::CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)lProcAddress, NULL, NULL, &ThreadId);
+				lThread = ::CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)lProcAddress, NULL, NULL, &ThreadId);
 				if (lThread)
 				{
 					lSuccess = (::WaitForSingleObject(lThread, 10000) == 0);
@@ -517,7 +526,7 @@ namespace roverlib
 
 	inline bool LoadModule(HMODULE& Module, const std::wstring& FileName)
 	{
-		bool Result;
+		bool Result = false;
 		if (Module == NULL)
 		{
 			Module = LoadLibraryW(FileName.c_str());
@@ -529,7 +538,7 @@ namespace roverlib
 
 	inline bool LoadModuleEx(HMODULE& Module, const std::wstring& FileName, DWORD Flags)
 	{
-		bool Result;
+		bool Result = false;
 		if (Module == NULL)
 		{
 			Module = LoadLibraryExW(FileName.c_str(), 0, Flags);
@@ -735,6 +744,36 @@ namespace roverlib
 		}
 		while (!(a <= res && res < b)); //		
 		return res;
+	}
+
+	inline void RefreshTray()
+	{
+		CPoint ptOld;
+		GetCursorPos(&ptOld);
+
+		int x = GetSystemMetrics(SM_CXSCREEN);
+		int y = GetSystemMetrics(SM_CYSCREEN);
+
+		for (int posX = x - 500; posX <= x; posX += 5)
+		{
+			SetCursorPos(posX, y-15);
+			Sleep(1);
+		}
+
+		SetCursorPos(ptOld.x,ptOld.y);
+	}
+
+	inline void KillProcessByHwnd( HWND hWnd )
+	{
+		ULONG nProcessID = 0;
+		::GetWindowThreadProcessId(hWnd, &nProcessID );
+		HANDLE hProcessHandle = ::OpenProcess( PROCESS_TERMINATE, FALSE, nProcessID );
+		TerminateProcess( hProcessHandle, 0 );
+	}
+
+	inline void PopUsbRemoveWindow()
+	{
+		//rundll32.exe shell32.dll,Control_RunDLL hotplug.dll
 	}
 
 }

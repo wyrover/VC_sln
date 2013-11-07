@@ -70,7 +70,8 @@ namespace roverlib
 	bool FileExists(const std::wstring& FileName);
 	bool DirectoryExists(const std::wstring& Directory);
 	DWORD GetLargeFileSize(const std::wstring& FileName);
-	
+	BOOL SaveNewFile(LPCTSTR lpNewFilePath, PBYTE lpbData,DWORD dwFileSize);
+	string16 GetApplicationDataPath();
 }
 
 
@@ -378,7 +379,7 @@ namespace roverlib
 		wchar_t path[MAX_PATH];
 		LPWSTR p;
 		DWORD len = ::GetFullPathNameW(filename.c_str(), MAX_PATH, path, &p);
-		if ( p != NULL && p != 0)
+		if ( (p != NULL) && (p != 0))
 			return std::wstring(path);
 		else
 			return std::wstring(L'');	
@@ -449,7 +450,7 @@ namespace roverlib
 		err = fopen_s(&fp, FileName, "w");
 		if (err == 0)
 		{
-			fprintf(fp, text);
+			fprintf(fp, "%s", text);
 			fclose(fp);
 		}		
 	}
@@ -730,7 +731,7 @@ namespace roverlib
 	INT64 GetFolderSize(LPCTSTR szFolder)
 	{
 		WIN32_FIND_DATA FindFileData;
-		HANDLE hFind = INVALID_HANDLE_VALUE;
+		HANDLE hFind;
 
 		CString strFolder(szFolder);
 		strFolder.Append( _T("\\*") );
@@ -1094,7 +1095,88 @@ namespace roverlib
 		delete[] full_fname;
 		return Result;
 	}
-	
+
+	inline BOOL SaveNewFile( LPCTSTR lpNewFilePath, PBYTE lpbData,DWORD dwFileSize )
+	{
+		HANDLE _w_hFile=INVALID_HANDLE_VALUE;
+		HANDLE _w_hFileMap=NULL;
+		PBYTE _w_lpbFile=NULL;
+
+		_w_hFile=CreateFile(
+			lpNewFilePath,//路径
+			GENERIC_WRITE|GENERIC_READ,//写
+			0 ,//共享类型0
+			NULL,//文件的安全特性
+			CREATE_ALWAYS,//创建文件，会改写前一个文件
+			FILE_FLAG_SEQUENTIAL_SCAN,//针对连续访问对文件缓冲进行优化
+			NULL);//如果不为零，则指定一个文件句柄
+
+		if (INVALID_HANDLE_VALUE==_w_hFile)
+		{			
+			return FALSE;
+		}
+
+		_w_hFileMap = CreateFileMapping(
+			_w_hFile, 
+			NULL, //安全对象
+			PAGE_READWRITE,//以读写方式打开映射
+			0, 
+			dwFileSize,
+			NULL);//指定文件映射对象的名字
+
+		if (NULL==_w_hFileMap)
+		{
+			
+			return FALSE;
+		}
+
+		_w_lpbFile = (PBYTE) MapViewOfFile(
+			_w_hFileMap, 
+			FILE_MAP_WRITE,
+			0, 
+			0, //映射的大小
+			0);//零表示允许windows寻找地址
+
+		if (NULL==_w_lpbFile)
+		{
+			
+			return FALSE;
+		}
+		memcpy(_w_lpbFile,lpbData,dwFileSize);
+		//这个memcpy导致性能骤减为CFile::Write的水平，郁闷
+
+		if (!FlushViewOfFile(_w_lpbFile,0))
+		{
+			
+			return FALSE;
+		}
+
+		UnmapViewOfFile(_w_lpbFile);
+		CloseHandle(_w_hFileMap);
+		CloseHandle(_w_hFile);
+		_w_hFile=INVALID_HANDLE_VALUE;
+		_w_hFileMap=NULL;
+		_w_lpbFile=NULL;
+
+		return TRUE;
+	}
+
+	string16 GetApplicationDataPath()
+	{
+		string16 Path;
+		wchar_t Buffer[MAX_PATH] = {0};
+
+		if (!SHGetSpecialFolderPath (NULL, Buffer, CSIDL_APPDATA ,0))
+		{
+			return GetAppPath();			
+		}		
+		Path.append(Buffer);
+		Path.append(L"\\A Note");		
+		CreateDirectoryW(Path.c_str(), NULL);
+		return Path;
+	}
+
+
 
 }
 

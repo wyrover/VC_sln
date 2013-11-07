@@ -29,30 +29,14 @@ extern CAppModule _Module;
 #include <boost/smart_ptr.hpp>
 #include <boost/make_shared.hpp>
 
-#include <LuaPlus/LuaPlus.h>
-using namespace LuaPlus;
-#if defined(_DEBUG) || defined(DEBUG)
-	#pragma comment(lib, "LuaPlusd.lib")
-	#pragma comment(lib, "cairo-mt-d.lib")
-	#pragma comment(lib, "pixman-mt-d.lib")
-	#pragma comment(lib, "libpng-mt-d.lib")
-	#pragma comment(lib, "zlib-mt-d.lib")
-#else
-	#pragma comment(lib, "LuaPlus.lib")	
-	#pragma comment(lib, "cairo-mt.lib")
-	#pragma comment(lib, "pixman-mt.lib")
-	#pragma comment(lib, "libpng-mt.lib")
-	#pragma comment(lib, "zlib-mt.lib")
-#endif
+#define BOOST_PYTHON_STATIC_LIB
+#include <boost/python.hpp>
+
 
 
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
-
 #include <rover/rover.h>
-
-#define cairo_public 
-#include <cairo-win32.h>
 
 
 

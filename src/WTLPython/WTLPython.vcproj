@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="WTLuaPlus"
-	ProjectGUID="{69D8D213-715E-4D90-B969-A8EF433EE0F8}"
-	RootNamespace="WTLuaPlus"
+	Name="WTLPython"
+	ProjectGUID="{CE8E9AA9-F9EB-47E9-AB2B-14B5AE2C5CF8}"
+	RootNamespace="WTLPython"
 	>
 	<Platforms>
 		<Platform
@@ -41,16 +41,17 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/WTLuaPlus.tlb"
-				HeaderFileName="WTLuaPlus.h"
+				TypeLibraryName="$(IntDir)/WTLPython.tlb"
+				HeaderFileName="WTLPython.h"
 				DLLDataFileName=""
-				InterfaceIdentifierFileName="WTLuaPlus_i.c"
-				ProxyFileName="WTLuaPlus_p.c"
+				InterfaceIdentifierFileName="WTLPython_i.c"
+				ProxyFileName="WTLPython_p.c"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/EHsc /Zm123"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../publish;../../include;../../3rdparty;../../3rdparty/wtl;../../3rdparty/msvc_compat;../../3rdparty/cairo/win32"
+				AdditionalIncludeDirectories="../../publish;../../include;../../3rdparty;../../3rdparty/wtl;../../3rdparty/Python27/include"
 				PreprocessorDefinitions=" _CRT_SECURE_NO_DEPRECATE;WIN32;_WINDOWS;STRICT;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -75,7 +76,7 @@
 				Name="VCLinkerTool"
 				OutputFile="../../product/win32d/$(ProjectName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../lib/win32d"
+				AdditionalLibraryDirectories="../../lib/win32d;../../3rdparty/Python27/libs"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../product/win32d/dbginfo/$(ProjectName).pdb"
 				SubSystem="2"
@@ -134,19 +135,19 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/WTLuaPlus.tlb"
-				HeaderFileName="WTLuaPlus.h"
+				TypeLibraryName="$(IntDir)/WTLPython.tlb"
+				HeaderFileName="WTLPython.h"
 				DLLDataFileName=""
-				InterfaceIdentifierFileName="WTLuaPlus_i.c"
-				ProxyFileName="WTLuaPlus_p.c"
+				InterfaceIdentifierFileName="WTLPython_i.c"
+				ProxyFileName="WTLPython_p.c"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/EHsc"
-				AdditionalIncludeDirectories="../../publish;../../include;../../3rdparty;../../3rdparty/wtl;../../3rdparty/msvc_compat;W:\3rdparty\cairo;W:\3rdparty\pixman"
+				AdditionalOptions="/EHsc /Zm123"
+				AdditionalIncludeDirectories="../../publish;../../include;../../3rdparty;../../3rdparty/wtl;../../3rdparty/Python27/include"
 				PreprocessorDefinitions=" _CRT_SECURE_NO_DEPRECATE;WIN32;_WINDOWS;STRICT;NDEBUG"
 				ExceptionHandling="0"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="0"
@@ -167,8 +168,7 @@
 				Name="VCLinkerTool"
 				OutputFile="../../product/win32/$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="../../lib/win32"
-				IgnoreDefaultLibraryNames="MSVCRT.lib"
+				AdditionalLibraryDirectories="../../lib/win32;../../3rdparty/Python27/libs"
 				ProgramDatabaseFile="../../product/win32/dbginfo/$(ProjectName).pdb"
 				SubSystem="2"
 				ImportLibrary="../../tmp/$(ConfigurationName)/$(ProjectName)/$(TargetName).lib"
@@ -228,7 +228,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\WTLuaPlus.cpp"
+				RelativePath=".\WTLPython.cpp"
 				>
 			</File>
 		</Filter>
@@ -254,11 +254,11 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest"
 			>
 			<File
-				RelativePath=".\res\WTLuaPlus.ico"
+				RelativePath=".\res\WTLPython.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\WTLuaPlus.rc"
+				RelativePath=".\WTLPython.rc"
 				>
 			</File>
 		</Filter>
@@ -266,67 +266,7 @@
 			Name="import"
 			>
 			<File
-				RelativePath="..\..\3rdparty\rover\Base64.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\closewhql.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\Convert.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\DateUtils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\DlgUtils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\Graphic.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\MemoryTracker.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\OSUtils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\PathUtils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\RegistryUtils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\ResUtils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\roverint.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\StrUtils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\UniConversion.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\UTF8Utils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\rover\WinObjs.h"
+				RelativePath="..\..\3rdparty\rover\rover.h"
 				>
 			</File>
 		</Filter>
@@ -334,7 +274,7 @@
 	<Globals>
 		<Global
 			Name="RESOURCE_FILE"
-			Value="WTLuaPlus.rc"
+			Value="WTLPython.rc"
 		/>
 	</Globals>
 </VisualStudioProject>

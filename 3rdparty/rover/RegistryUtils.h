@@ -156,7 +156,7 @@ namespace roverlib
 		}
 		RegCloseKey(hKey);
 		delete tcKeyName;
-		delete pbbinKeyData;
+		delete[] pbbinKeyData;
 	}
 
 

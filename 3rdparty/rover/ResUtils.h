@@ -1,6 +1,8 @@
 #ifndef _ROVERLIB_RESUTILS_H_
 #define _ROVERLIB_RESUTILS_H_
 
+#include "Base64.h"
+
 namespace roverlib
 {
 	bool LoadBinaryResource(int binaryId, DWORD &dwSize, LPBYTE &pBytes);
@@ -30,6 +32,9 @@ namespace roverlib
 
 		return false;
 	}
+
+
+
 }
 
 
