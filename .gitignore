@@ -35,7 +35,7 @@ Release/
 *.[Cc]ache
 *.ilk
 *.log
-*.lib
+lib/*.lib
 *.sbr
 *.sdf
 *.sdf
