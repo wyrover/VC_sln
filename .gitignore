@@ -35,7 +35,7 @@ Release/
 *.[Cc]ache
 *.ilk
 *.log
-lib/*.lib
+lib/win32/*.lib
 *.sbr
 *.sdf
 *.sdf
@@ -47,7 +47,7 @@ lib/*.lib
 *.lastbuildstate
 *.tlog
 *.intermediate
-*.dll
+product/win32/*.dll
 *.exp
 *.exe
 *.manifest
